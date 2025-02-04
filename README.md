@@ -111,15 +111,7 @@ This file **containers the application** so that it can be run in any environmen
 - Installs dependencies from `requirements.txt`.
 - Exposes port `8000` for the API.
 - Runs **Uvicorn** to start the FastAPI application.
-
-### **11. `.env.example`**:
-This file contains an **example environment configuration** with a placeholder for the **OpenAI API key**. The `.env` file should be created based on this example.
-
-#### **Content in `.env.example`:**
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-
-Run the FastAPI Server
+- Run the FastAPI Server
 
 Run the FastAPI application using Uvicorn:
 
@@ -128,3 +120,32 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 You should see the following output:
 
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+### **11. `.env.example`**:
+This file contains an **example environment configuration** with a placeholder for the **OpenAI API key**. The `.env` file should be created based on this example.
+
+#### **Content in `.env.example`:**
+```env
+
+OPENAI_API_KEY=your_openai_api_key_here
+
+strucutre - ```
+└── 📁resume-jd-parser
+    └── 📁app
+        └── main.py
+        └── 📁models
+            └── schemas.py
+        └── 📁services
+            └── config_service.py
+            └── gpt_service.py
+            └── jd_extraction_helper.py
+            └── resume_extraction.py
+        └── 📁utils
+            └── file_parser.py
+            └── logger.py
+    └── .env
+    └── .gitignore
+    └── logs_2025-02-04.log
+    └── README.md
+    └── requirements.txt
+```
