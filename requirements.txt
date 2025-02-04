@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+openai
+python-dotenv
+PyPDF2
+python-docx
+pydantic
+aiofiles
+requests
+logging
+datetime
+typing
+python-multipart
