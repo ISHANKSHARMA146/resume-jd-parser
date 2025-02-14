@@ -25,15 +25,18 @@ async def root():
 @app.post("/api/parse-resume/")
 async def parse_resume(file: UploadFile = File(...)):
     """
-    Endpoint to parse a resume file (PDF or DOCX) and return structured JSON output.
+    Endpoint to parse a resume file (PDF, DOCX, DOC, image) and return structured JSON output.
     """
     try:
+        # Read the file into a BytesIO buffer
         file_buffer = BytesIO(await file.read())  
         filename = file.filename
 
+        # Call the resume parser service
         result = await resume_parser.parse_resume(file_buffer, filename)
         return result
     except Exception as e:
+        # Log the error and return a 500 HTTP exception
         logger.error(f"Error parsing resume file '{file.filename}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error parsing resume: {str(e)}")
 
@@ -43,16 +46,20 @@ async def parse_job_description(file: UploadFile = File(...)):
     Endpoint to parse a job description file (PDF or DOCX) and return structured JSON output.
     """
     try:
+        # Read the file into a BytesIO buffer
         file_buffer = BytesIO(await file.read())
         filename = file.filename
 
+        # Call the job description parser service
         result = await jd_parser.parse_job_description(file_buffer, filename)
         return result
     except Exception as e:
+        # Log the error and return a 500 HTTP exception
         logger.error(f"Error parsing job description file '{file.filename}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error parsing job description: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting Resume and JD Parser API")
+    # Run the FastAPI app with Uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

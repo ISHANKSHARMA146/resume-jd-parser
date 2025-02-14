@@ -4,6 +4,9 @@ openai
 python-dotenv
 PyPDF2
 python-docx
+pytesseract 
+pywin32 
+pillow
 pydantic
 aiofiles
 requests
