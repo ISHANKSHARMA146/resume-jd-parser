@@ -1,40 +1,77 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-# ===== Resume Parsing Schemas =====
 
-class Education(BaseModel):
-    degree: str = Field(..., description="Degree obtained by the candidate.")
-    institution: str = Field(..., description="Institution where the candidate studied.")
-    duration: str = Field(..., description="Calculated duration of the education in years or months.")
-    cgpa: Optional[str] = Field(None, description="CGPA or percentage obtained by the candidate.")
+class DurationDto(BaseModel):
+    years: int = Field(..., description="Number of years")
+    months: int = Field(..., description="Number of months")
 
-class Experience(BaseModel):
-    company: str = Field(..., description="Company where the candidate worked.")
-    role: str = Field(..., description="Job role or title of the candidate.")
-    duration: str = Field(..., description="Duration of the work experience in years or months.")
-    description: str = Field(..., description="Brief description of responsibilities.")
-    location: str = Field(..., description="Location of the company.")
-    skills: List[str] = Field(..., description="Skills gained or used in this role.")
-    tasks: List[str] = Field(..., description="Key tasks performed in this role.")
+
+class ExperienceDto(BaseModel):
+    key: str = Field(..., description="Unique identifier for the experience")
+    logo: Optional[str] = Field(None, description="Logo of the company or organization")
+    title: Optional[str] = Field(None, description="Job title or position held")
+    description: Optional[str] = Field(None, description="Description of responsibilities")
+    date_start: Optional[str] = Field(None, description="Start date of the role")
+    date_end: Optional[str] = Field(None, description="End date of the role")
+    skills: Optional[List[str]] = Field(None, description="Skills gained during the experience")
+    certifications: Optional[List[str]] = Field(None, description="Certifications related to the role")
+    courses: Optional[List[str]] = Field(None, description="Courses completed during the role")
+    tasks: Optional[List[str]] = Field(None, description="Key tasks performed in the role")
+    languages: Optional[List[str]] = Field(None, description="Languages used or known in the role")
+    interests: Optional[List[str]] = Field(None, description="Personal interests")
+    company: str = Field(..., description="Company name where the experience took place")
+
+
+class EducationDto(BaseModel):
+    key: Optional[str] = Field(None, description="Unique identifier for education")
+    logo: Optional[str] = Field(None, description="Logo of the educational institution")
+    title: Optional[str] = Field(None, description="Degree or qualification")
+    description: Optional[str] = Field(None, description="Description of the program or course")
+    date_start: Optional[str] = Field(None, description="Start date of the education")
+    date_end: Optional[str] = Field(None, description="End date of the education")
+    skills: Optional[List[str]] = Field(None, description="Skills learned during the course")
+    certifications: Optional[List[str]] = Field(None, description="Certifications related to the education")
+    courses: Optional[List[str]] = Field(None, description="Courses completed during education")
+    tasks: Optional[List[str]] = Field(None, description="Tasks or projects undertaken during education")
+    languages: Optional[List[str]] = Field(None, description="Languages known during education")
+    interests: Optional[List[str]] = Field(None, description="Personal interests during education")
+    school: str = Field(..., description="Name of the school or university")
+
+
+class SocialUrlDto(BaseModel):
+    type: Optional[str] = Field(None, description="Type of social link (LinkedIn, GitHub, etc.)")
+    url: Optional[str] = Field(None, description="URL to the social profile")
+
+
+class LanguageItemDto(BaseModel):
+    name: Optional[str] = Field(None, description="Name of the language known")
+
+
+class SkillsDto(BaseModel):
+    primary_skills: Optional[List[str]] = Field(None, description="Primary skills of the candidate")
+    secondary_skills: Optional[List[str]] = Field(None, description="Secondary skills of the candidate")
+
 
 class ResumeSchema(BaseModel):
-    candidate_name: str = Field(..., description="Full name of the candidate.")
-    email_address: str = Field(..., description="Email address of the candidate.")
-    phone_number: str = Field(..., description="Phone number of the candidate.")
-    skills: List[str] = Field(..., description="List of extracted skills.")
-    languages: Optional[List[str]] = Field(None, description="List of languages known by the candidate.")
-    educations: List[Education] = Field(..., description="List of educational qualifications.")
-    total_education_duration: str = Field(..., description="Total education duration calculated in years and/or months.")
-    experiences: List[Experience] = Field(..., description="List of work experiences.")
-    total_experience: str = Field(..., description="Total work experience duration calculated in years and/or months.")
-    social_urls: Optional[List[str]] = Field(None, description="List of candidate's social URLs (LinkedIn, GitHub, etc.).")
+    candidate_name: Optional[str] = Field(None, description="Full name of the candidate")
+    email_address: Optional[str] = Field(None, description="Email address")
+    phone_number: Optional[str] = Field(None, description="Phone number")
+    work_experience: Optional[DurationDto] = Field(None, description="Work experience duration")
+    educations_duration: Optional[DurationDto] = Field(None, description="Total education duration")
+    experiences: Optional[List[ExperienceDto]] = Field(None, description="List of work experiences")
+    educations: Optional[List[EducationDto]] = Field(None, description="List of educational qualifications")
+    social_urls: Optional[List[SocialUrlDto]] = Field(None, description="List of social media URLs")
+    languages: Optional[List[LanguageItemDto]] = Field(None, description="List of languages known")
+    skills: Optional[SkillsDto] = Field(None, description="Skills information")
 
-# ===== Job Description Parsing Schemas =====
 
 class JobDescriptionSchema(BaseModel):
-    job_title: str = Field(..., description="Title of the job position.")
-    job_description: str = Field(..., description="Full job description text.")
-    required_skills: List[str] = Field(..., description="List of required skills for the job.")
-    min_work_experience: Optional[str] = Field(None, description="Minimum work experience required for the job.")
+    job_title: str = Field(..., description="Job title for the position")
+    job_description: str = Field(..., description="Full job description text")
+    required_skills: Optional[List[str]] = Field(None, description="List of required skills for the job")
+    min_work_experience: Optional[str] = Field(None, description="Minimum work experience required for the job")
 
+class JobDescriptionSchemaBase(BaseModel):
+    response: JobDescriptionSchema = Field(..., description="Structured job description data")
+    filename: Optional[str] = Field(None, description="Name of the uploaded file")
