@@ -1,12 +1,14 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Dict, Any, Optional
 
 
+# 📌 **Duration Schema (for Work & Education Duration)**
 class DurationDto(BaseModel):
     years: int = Field(..., description="Number of years")
     months: int = Field(..., description="Number of months")
 
 
+# 📌 **Experience Schema**
 class ExperienceDto(BaseModel):
     key: str = Field(..., description="Unique identifier for the experience")
     logo: Optional[str] = Field(None, description="Logo of the company or organization")
@@ -23,6 +25,7 @@ class ExperienceDto(BaseModel):
     company: str = Field(..., description="Company name where the experience took place")
 
 
+# 📌 **Education Schema**
 class EducationDto(BaseModel):
     key: Optional[str] = Field(None, description="Unique identifier for education")
     logo: Optional[str] = Field(None, description="Logo of the educational institution")
@@ -39,20 +42,24 @@ class EducationDto(BaseModel):
     school: str = Field(..., description="Name of the school or university")
 
 
+# 📌 **Social URLs Schema**
 class SocialUrlDto(BaseModel):
     type: Optional[str] = Field(None, description="Type of social link (LinkedIn, GitHub, etc.)")
     url: Optional[str] = Field(None, description="URL to the social profile")
 
 
+# 📌 **Languages Schema**
 class LanguageItemDto(BaseModel):
     name: Optional[str] = Field(None, description="Name of the language known")
 
 
+# 📌 **Skills Schema**
 class SkillsDto(BaseModel):
     primary_skills: Optional[List[str]] = Field(None, description="Primary skills of the candidate")
     secondary_skills: Optional[List[str]] = Field(None, description="Secondary skills of the candidate")
 
 
+# 📌 **Resume Schema (for Extraction & Scoring)**
 class ResumeSchema(BaseModel):
     candidate_name: Optional[str] = Field(None, description="Full name of the candidate")
     email_address: Optional[str] = Field(None, description="Email address")
@@ -66,12 +73,54 @@ class ResumeSchema(BaseModel):
     skills: Optional[SkillsDto] = Field(None, description="Skills information")
 
 
+# 📌 **Job Description Schema (for Extraction)**
 class JobDescriptionSchema(BaseModel):
     job_title: str = Field(..., description="Job title for the position")
     job_description: str = Field(..., description="Full job description text")
     required_skills: Optional[List[str]] = Field(None, description="List of required skills for the job")
     min_work_experience: Optional[str] = Field(None, description="Minimum work experience required for the job")
 
-class JobDescriptionSchemaBase(BaseModel):
-    response: JobDescriptionSchema = Field(..., description="Structured job description data")
-    filename: Optional[str] = Field(None, description="Name of the uploaded file")
+
+# 📌 **Enhanced Job Description Schema (for Enhancing Job Descriptions)**
+class EnhancedJobDescriptionSchema(BaseModel):
+    job_title: str = Field(..., description="Enhanced job title for better clarity")
+    role_summary: str = Field(..., description="Expanded overview of the role")
+    responsibilities: List[str] = Field(..., description="List of responsibilities for the job")
+    required_skills: List[str] = Field(..., description="Categorized required skills")
+    experience_level: str = Field(..., description="Required experience level for the role")
+    key_metrics: List[str] = Field(..., description="Quantifiable indicators for performance measurement")
+
+
+# 📌 **Candidate Profile Schema (for Sample Candidates)**
+class CandidateProfileSchema(BaseModel):
+    full_name: str = Field(..., description="Generated name of the sample candidate")
+    experience: Optional[DurationDto] = Field(None, description="Work experience duration")
+    key_skills: Optional[SkillsDto] = Field(None, description="Skills information")
+    missing_skills: List[str] = Field(..., description="List of missing skills compared to JD")
+    educations: Optional[List[EducationDto]] = Field(None, description="List of educational qualifications")
+    work_samples: List[str] = Field(..., description="Relevant work examples or projects")
+    score: int = Field(..., description="Candidate's score out of 10")
+    scoring_justification: str = Field(..., description="Reasoning for the candidate's score")
+
+class CandidateProfileSchemaList(BaseModel):
+    candidate_list: List[CandidateProfileSchema] = Field(..., description="List of candidates")
+
+
+# 📌 **Job Description & Candidate Response Schema**
+class JobDescriptionEnhancementResponse(BaseModel):
+    enhanced_job_description: EnhancedJobDescriptionSchema = Field(..., description="Enhanced job description data")
+    generated_candidates: CandidateProfileSchemaList = Field(..., description="List of generated candidate profiles")
+
+
+# 📌 **Resume Scoring Schema**
+class ResumeScoringSchema(BaseModel):
+    candidate_name: str = Field(..., description="Name of the candidate extracted from resume")
+    resume_score: int = Field(..., description="Score assigned to resume (0-10)")
+    gap_analysis: Dict[str, List[str]] = Field(..., description="Details on missing skills, experience gaps")
+    closest_sample_candidate: str = Field(..., description="Closest matching sample candidate from the generated set")
+    recommendations: str = Field(..., description="Improvement recommendations for the candidate")
+
+
+# 📌 **Resume Scoring Response (for Bulk Processing)**
+class ResumeScoringResponse(BaseModel):
+    scored_resumes: List[ResumeScoringSchema] = Field(..., description="List of scored resumes with comparison results")

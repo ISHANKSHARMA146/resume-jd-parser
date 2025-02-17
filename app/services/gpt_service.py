@@ -1,6 +1,14 @@
 from openai import OpenAI
 from app.utils.logger import Logger
-from app.models.schemas import ResumeSchema, JobDescriptionSchema
+from app.models.schemas import (
+    ResumeSchema, 
+    JobDescriptionSchema, 
+    EnhancedJobDescriptionSchema, 
+    CandidateProfileSchema, 
+    JobDescriptionEnhancementResponse,
+    ResumeScoringSchema,
+    CandidateProfileSchemaList
+)
 from app.services.config_service import ConfigService
 from typing import Dict, Any
 
@@ -27,7 +35,7 @@ class GPTService:
         self,
         system_prompt: str,
         user_prompt: str,
-        response_schema: Any
+        response_schema: Any  # Keep response_schema unchanged
     ) -> Dict[str, Any]:
         """
         Extract structured information using GPT with custom prompts and schema.
@@ -51,7 +59,7 @@ class GPTService:
             response = self.openai_client.beta.chat.completions.parse(
                 model="gpt-4o-mini",
                 messages=messages,
-                response_format=response_schema
+                response_format=response_schema  # ✅ Keep response_schema unchanged
             )
 
             # Parse and return the structured response
