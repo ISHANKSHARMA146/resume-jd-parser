@@ -149,3 +149,95 @@ strucutre - ```
     └── README.md
     └── requirements.txt
 ```
+
+FastAPI Application Setup Guide (Windows & Mac)
+
+This guide will help you set up and run your FastAPI application inside VS Code for both Windows and Mac users.
+
+Prerequisites:
+
+Install Python (>=3.8)
+Install VS Code
+Install pip (should come with Python)
+Install virtualenv (if not installed, run pip install virtualenv)
+Step 1: Open VS Code and Open the Terminal
+
+Windows: Press Ctrl + ~ to open the terminal.
+Mac: Press Cmd + ~ to open the terminal.
+
+Step 2: Create a Virtual Environment
+
+Run the following command to create a Python virtual environment:
+
+python -m venv env
+
+This will create a folder named "env" that contains the isolated Python environment.
+
+Step 3: Activate the Virtual Environment
+
+For Windows Users:
+
+Open the "env" folder in your project directory.
+
+Navigate to the "Scripts" folder.
+
+Right-click on "activate.ps1" and select "Copy Path".
+
+In the terminal, paste the copied path inside quotes and press Enter:
+
+"E:\resume-jd-parser\env\Scripts\Activate.ps1"
+
+If PowerShell execution policy prevents activation, run:
+
+Set-ExecutionPolicy Unrestricted -Scope Process
+
+Then try activating again.
+
+For Mac Users:
+
+Run the following command:
+
+source env/bin/activate
+
+If this doesn’t work, ensure the environment exists with:
+
+ls env/bin/activate
+
+Once activated, your terminal will show (env) at the beginning of the prompt.
+
+Step 4: Create a .env File
+
+In the root directory of your project, create a new file named ".env".
+
+Open the ".env" file and add your OpenAI API Key:
+
+OPENAI_API_KEY="your_api_key_here"
+
+Step 5: Install Dependencies
+
+With the virtual environment activated, install the required dependencies by running:
+
+pip install -r requirements.txt
+
+This will install all necessary packages for your application.
+
+Step 6: Start the Application
+
+Run the following command in the terminal:
+
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+If successful, you will see output like:
+
+INFO: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO: Application startup complete.
+
+Step 7: Open the Application in a Browser
+
+Once the server starts, open your browser.
+
+Visit:
+
+http://localhost:8000/
+
+You can now use your application.
