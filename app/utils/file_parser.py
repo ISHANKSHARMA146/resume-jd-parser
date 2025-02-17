@@ -57,8 +57,10 @@ def parse_pdf(file_buffer: BytesIO) -> str:
             if "/Annots" in page:
                 annotations = page["/Annots"]
                 for annotation in annotations:
-                    if "/A" in annotation and "/URI" in annotation["/A"]:
-                        hyperlinks.append(annotation["/A"]["/URI"])
+                    # Check if annotation is an IndirectObject and resolve it properly
+                    if isinstance(annotation, dict):
+                        if "/A" in annotation and "/URI" in annotation["/A"]:
+                            hyperlinks.append(annotation["/A"]["/URI"])
 
         # Join the hyperlinks into a single string (one per line)
         hyperlinks_text = '\n'.join(hyperlinks)

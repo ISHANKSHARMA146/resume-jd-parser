@@ -3,9 +3,9 @@ from app.services.gpt_service import GPTService
 from app.services.config_service import ConfigService
 from io import BytesIO
 from app.utils.logger import Logger
-from app.models.schemas import ResumeSchema, ResumeScoringSchema, ResumeScoringResponse
+from app.models.schemas import ResumeSchema, JobDescriptionEnhancementResponse, ResumeScoringSchema
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict
 
 logger = Logger(__name__).get_logger()
 
@@ -24,7 +24,7 @@ class ResumeScoringService:
         self.gpt_service = GPTService()
         self.job_description_enhancer = job_description_enhancer  # Reference to Enhanced JD & Candidates
 
-    async def process_bulk_resumes(self, resume_files: List[BytesIO], filenames: List[str]) -> List[Dict[str, Any]]:
+    async def process_bulk_resumes(self, resume_files: List[BytesIO], filenames: List[str]) -> List[Dict[str, any]]:
         """
         Processes multiple resumes, extracts structured data, and compares them to the enhanced job description 
         and sample candidates.
@@ -62,7 +62,7 @@ class ResumeScoringService:
             logger.error(f"Error processing resumes: {str(e)}", exc_info=True)
             raise
 
-    async def parse_resume(self, file_buffer: BytesIO, filename: str) -> Dict[str, Any]:
+    async def parse_resume(self, file_buffer: BytesIO, filename: str) -> Dict[str, any]:
         """
         Parses a resume file and extracts structured information.
 
@@ -112,42 +112,55 @@ class ResumeScoringService:
             9) languages (array of objects, each with:
                 - name (string)
             10) skills (object containing 'primary_skills' (array of strings) and 'secondary_skills' (array of strings))
+
+            Key instructions for duration calculations:
+            - Calculate work_experience and educations_duration based on the start and end dates. Ensure that consecutive periods (without gaps) are treated as distinct and add up the durations without including the gap between roles.
+            - If "present," "ongoing," or similar terms like these are mentioned, then use today's date {today_date} as the date_end and calculate the duration accordingly.
             """
 
             user_prompt = f"""
             Extract structured information from this resume text:
             {text}
+            Follow these instructions:
+            1. Parse the text and extract structured information according to the keys mentioned above.
+            2. Ensure that the total work experience is calculated accurately by accounting for overlaps and distinct periods.
+            3. Handle ongoing periods by comparing "present" with today's date and calculating the accurate duration.
+            4. For overlapping roles, calculate the total unique time worked without double-counting.
+            5. For education durations, calculate accurately.
+            6. Ensure no missing fields, and if any information is not provided, use null or empty arrays.
+            7. Return a valid JSON output with accurate dates and durations.
+            8. If no skills are explicitly or less than 10 are mentioned in the resume, generate a total of 10 relevant skills based on the candidate's experience and education.
             """
 
-            extracted_resume = await self.gpt_service.extract_with_prompts(
+            structured_data = await self.gpt_service.extract_with_prompts(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 response_schema=ResumeSchema
             )
 
-            if extracted_resume.get('experiences'):
-                experiences_array = extracted_resume['experiences']
+            if structured_data.get('experiences'):
+                experiences_array = structured_data['experiences']
                 if not isinstance(experiences_array, list):
                     experiences_array = [experiences_array]
 
-                extracted_resume['work_experience'] = self.calculate_total_work_experience(
+                structured_data['work_experience'] = self.calculate_total_work_experience(
                     [{'date_start': exp['date_start'], 'date_end': exp['date_end']} for exp in experiences_array]
                 )
 
-            return extracted_resume
+            return structured_data
 
         except Exception as e:
             logger.error(f"Error extracting resume details: {str(e)}", exc_info=True)
             raise
 
-    async def compare_resume_with_jd_and_candidates(self, resume: Dict[str, Any], enhanced_jd: Dict[str, Any], candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def compare_resume_with_jd_and_candidates(self, resume: Dict[str, any], enhanced_jd: Dict[str, any], candidates: List[Dict[str, any]]) -> Dict[str, any]:
         """
         Compares an extracted resume against the enhanced job description and sample candidates.
 
         Args:
-            resume (Dict[str, Any]): Extracted resume details.
-            enhanced_jd (Dict[str, Any]): The enhanced job description.
-            candidates (List[Dict[str, Any]]): List of six generated candidate profiles.
+            resume (Dict[str, any]): Extracted resume details.
+            enhanced_jd (Dict[str, any]): The enhanced job description.
+            candidates (List[Dict[str, any]]): List of six generated candidate profiles.
 
         Returns:
             Dict with resume score, closest matching candidate, and improvement recommendations.
@@ -158,12 +171,10 @@ class ResumeScoringService:
             Your task is to analyze how well a candidate's resume aligns with both.
 
             **Scoring Criteria:**
-            1. **Skill Match** (Technical & Soft Skills).
-            2. **Experience Relevance** (Past roles, industry).
-            3. **Education & Certifications** (Matching Degree & Certifications).
-            4. **Keyword Similarity** (ATS optimization).
-
-            Provide a structured JSON response strictly following the schema.
+            1 **Skill Match** (Technical & Soft Skills).
+            2 **Experience Relevance** (Past roles, industry).
+            3 **Education & Certifications** (Matching Degree & Certifications).
+            4 **Keyword Similarity** (ATS optimization).
             """
 
             user_prompt = f"""
@@ -201,4 +212,4 @@ class ResumeScoringService:
         try:
             return datetime.strptime(date_string, '%Y-%m-%d')
         except ValueError:
-            return datetime.now()
+            return datetime.now()  # If the date is invalid, return the current date

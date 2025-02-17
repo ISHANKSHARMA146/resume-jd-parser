@@ -116,7 +116,7 @@ class JobDescriptionEnhancementResponse(BaseModel):
 class ResumeScoringSchema(BaseModel):
     candidate_name: str = Field(..., description="Name of the candidate extracted from resume")
     resume_score: int = Field(..., description="Score assigned to resume (0-10)")
-    gap_analysis: Dict[str, List[str]] = Field(..., description="Details on missing skills, experience gaps")
+    gap_analysis: List[str]= Field(..., description="Details on missing skills, experience gaps")
     closest_sample_candidate: str = Field(..., description="Closest matching sample candidate from the generated set")
     recommendations: str = Field(..., description="Improvement recommendations for the candidate")
 
