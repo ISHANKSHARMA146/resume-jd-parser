@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 from io import BytesIO
 from typing import List
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from app.services.resume_extraction import ResumeParser
 from app.services.jd_extraction_helper import JobDescriptionParser
 from app.services.job_description_enhance import JobDescriptionEnhancer
@@ -16,6 +19,13 @@ app = FastAPI(
     description="API for extracting, enhancing, and scoring resumes and job descriptions",
     version="1.0.0"
 )
+
+# Serve static files (HTML UI)
+app.mount("/static", StaticFiles(directory="app"), name="static")
+
+@app.get("/")
+async def serve_ui():
+    return FileResponse(os.path.join("app", "index.html"))
 
 # Initialize Services
 resume_parser = ResumeParser()
