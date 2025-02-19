@@ -5,7 +5,7 @@ from app.services.gpt_service import GPTService
 from app.services.config_service import ConfigService
 from io import BytesIO
 from app.utils.logger import Logger
-from app.models.schemas import ResumeSchema, ResumeScoringSchema
+from app.models.schemas import ResumeSchema, ResumeScoringSchema, JobDescriptionIndustrySchema, ResumeIndustrySchema
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 
@@ -155,6 +155,61 @@ class ResumeScoringService:
             logger.error(f"Error extracting resume details: {str(e)}", exc_info=True)
             raise
 
+    async def classify_resume_industry(self, resume: Dict[str, any]) -> str:
+        """
+        Classifies the industry of a resume based on its extracted content.
+
+        Args:
+            resume (Dict[str, any]): The extracted resume details.
+
+        Returns:
+            str: Industry classification (e.g., "Finance", "Software Engineering").
+        """
+        try:
+            industry_prompt = f"""
+            Analyze the candidate's job roles, skills, and experience. Assign a single industry classification.
+            **Candidate Resume:**
+            {resume}
+
+            Respond with only one industry name.
+            """
+            return await self.gpt_service.extract_with_prompts(
+                system_prompt="You are an expert in job market analysis. Classify the following resume into an industry category.",
+                user_prompt=industry_prompt,
+                response_schema=ResumeIndustrySchema
+            )
+        except Exception as e:
+            logger.error(f"Error classifying resume industry: {str(e)}", exc_info=True)
+            return "Unknown"
+
+    async def classify_jd_industry(self, enhanced_jd: Dict[str, any]) -> str:
+        """
+        Classifies the industry of the job description.
+
+        Args:
+            enhanced_jd (Dict[str, any]): The enhanced job description.
+
+        Returns:
+            str: Industry classification (e.g., "Finance", "Software Engineering").
+        """
+        try:
+            industry_prompt = f"""
+            Analyze the job description and required skills. Assign a single industry classification.
+            **Job Description:**
+            {enhanced_jd}
+
+            Respond with only one industry name.
+            """
+            return await self.gpt_service.extract_with_prompts(
+                system_prompt="You are an expert in job market analysis. Classify the following job description into an industry category.",
+                user_prompt=industry_prompt,
+                response_schema=JobDescriptionIndustrySchema
+            )
+        except Exception as e:
+            logger.error(f"Error classifying job description industry: {str(e)}", exc_info=True)
+            return "Unknown"
+
+
     async def compare_resume_with_jd_and_candidates(self, resume: Dict[str, any], enhanced_jd: Dict[str, any], candidates: List[Dict[str, any]]) -> Dict[str, any]:
         """
         Compares an extracted resume against the enhanced job description and sample candidates.
@@ -170,14 +225,23 @@ class ResumeScoringService:
         try:
             jd_text = enhanced_jd.get("job_description", "")
 
-            # **Compute Cosine Similarity Score**
-            similarity_score = await self.compute_similarity(jd_text, resume["candidate_name"])
+            # **Industry Classification**: Determine if resume industry matches JD
+            resume_industry = await self.classify_resume_industry(resume)
+            jd_industry = await self.classify_jd_industry(enhanced_jd)
+            industry_match = resume_industry == jd_industry
+
+            # **Compute Experience Relevance (Scale: 0 to 1)**
+            experience_years = resume.get("work_experience", {}).get("years", 0)
+            experience_relevance = min(1.0, experience_years / 10)  # Scale to 10 years max
+
+            # **Compute Improved Vectorized Similarity**
+            similarity_score = await self.compute_similarity(jd_text, resume["candidate_name"], industry_match, experience_relevance)
 
             # **Call GPT-Based Resume Scoring**
             gpt_based_scoring = await self.call_gpt_for_scoring(resume, enhanced_jd, candidates)
 
             # **Ensure Vectorized Similarity is displayed properly**
-            gpt_based_scoring["vectorized_similarity"] = f"{round(float(similarity_score), 2)} / 2.0"
+            gpt_based_scoring["vectorized_similarity"] = f"{similarity_score} / 1.0"
 
             # **Remove Final Combined Score**
             if "final_combined_score" in gpt_based_scoring:
@@ -255,16 +319,18 @@ class ResumeScoringService:
             logger.error(f"Error in GPT-based scoring: {str(e)}", exc_info=True)
             raise
 
-    async def compute_similarity(self, text1: str, text2: str) -> float:
+    async def compute_similarity(self, text1: str, text2: str, industry_match: bool, experience_relevance: float) -> float:
         """
-        Uses TensorFlow's cosine similarity to compute the similarity between two pieces of text.
+        Computes similarity between two texts (JD & Resume) with industry relevance penalty.
 
         Args:
-            text1 (str): First text (Job Description).
-            text2 (str): Second text (Resume).
+            text1 (str): Job Description text.
+            text2 (str): Resume text.
+            industry_match (bool): Whether the industries match.
+            experience_relevance (float): Experience score from 0 to 1 (how well experience aligns).
 
         Returns:
-            float: Cosine similarity score (0-2.0).
+            float: Adjusted cosine similarity score (0-1).
         """
         try:
             text1_embedding = await self.gpt_service.get_text_embedding(text1)
@@ -273,17 +339,27 @@ class ResumeScoringService:
             if not text1_embedding or not text2_embedding:
                 return 0.0  # Fallback in case of embedding failure
 
-            # Compute cosine similarity
-            similarity = tf.keras.losses.cosine_similarity(
+            # Compute cosine similarity (TensorFlow outputs negative values, convert to 0-1)
+            similarity = 1 - tf.keras.losses.cosine_similarity(
                 tf.convert_to_tensor([text1_embedding], dtype=tf.float32),
                 tf.convert_to_tensor([text2_embedding], dtype=tf.float32)
             ).numpy()[0]
 
-            return float(1 - similarity)  # ✅ Convert to standard Python float (ensures compatibility)
+            # 🔹 **Dynamic Industry Weighting Penalty**
+            if not industry_match:
+                if experience_relevance < 0.3:  # 🚨 Strong mismatch (e.g., Software Engineer vs. Auditor)
+                    similarity *= 0.2  # 80% penalty
+                elif experience_relevance < 0.6:  # ⚠️ Partial mismatch (e.g., Finance but no audit experience)
+                    similarity *= 0.5  # 50% penalty
+                else:  # ✅ Close industry match (e.g., Internal Audit but missing some elements)
+                    similarity *= 0.8  # 20% penalty
+
+            return round(float(similarity), 2)  # Ensure Python float
 
         except Exception as e:
             logger.error(f"Error computing similarity: {str(e)}", exc_info=True)
             return 0.0
+
 
     def calculate_total_work_experience(self, experiences: List[Dict[str, str]]) -> Dict[str, int]:
         """

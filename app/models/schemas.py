@@ -124,3 +124,11 @@ class ResumeScoringSchema(BaseModel):
 # 📌 **Resume Scoring Response (for Bulk Processing)**
 class ResumeScoringResponse(BaseModel):
     scored_resumes: List[ResumeScoringSchema] = Field(..., description="List of scored resumes with comparison results")
+
+# 📌 **Industry Classification Schema for Resume**
+class ResumeIndustrySchema(BaseModel):
+    industry: str = Field(..., description="The classified industry of the candidate's resume")
+
+# 📌 **Industry Classification Schema for Job Description**
+class JobDescriptionIndustrySchema(BaseModel):
+    industry: str = Field(..., description="The classified industry of the job description")
