@@ -1,11 +1,13 @@
+import tensorflow as tf
+import numpy as np
 from app.utils.file_parser import parse_pdf_or_docx
 from app.services.gpt_service import GPTService
 from app.services.config_service import ConfigService
 from io import BytesIO
 from app.utils.logger import Logger
-from app.models.schemas import ResumeSchema, JobDescriptionEnhancementResponse, ResumeScoringSchema
+from app.models.schemas import ResumeSchema, ResumeScoringSchema
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 
 logger = Logger(__name__).get_logger()
 
@@ -166,6 +168,32 @@ class ResumeScoringService:
             Dict with resume score, closest matching candidate, and improvement recommendations.
         """
         try:
+            jd_text = enhanced_jd.get("job_description", "")
+
+            # **Compute Cosine Similarity Score**
+            similarity_score = await self.compute_similarity(jd_text, resume["candidate_name"])
+
+            # **Call GPT-Based Resume Scoring**
+            gpt_based_scoring = await self.call_gpt_for_scoring(resume, enhanced_jd, candidates)
+
+            # **Ensure Vectorized Similarity is displayed properly**
+            gpt_based_scoring["vectorized_similarity"] = f"{round(float(similarity_score), 2)} / 2.0"
+
+            # **Remove Final Combined Score**
+            if "final_combined_score" in gpt_based_scoring:
+                del gpt_based_scoring["final_combined_score"]
+
+            return gpt_based_scoring
+
+        except Exception as e:
+            logger.error(f"Error comparing resume: {str(e)}", exc_info=True)
+            raise
+
+    async def call_gpt_for_scoring(self, resume: Dict[str, Any], enhanced_jd: Dict[str, Any], candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calls GPT-based scoring system for deeper analysis.
+        """
+        try:
             system_prompt = f"""
             You are an AI tasked with evaluating resumes in relation to an enhanced job description and a set of sample candidates. The candidate's resume should be analyzed thoroughly, including both technical and non-technical aspects, and compared with the job description as well as the dummy candidates.
 
@@ -217,25 +245,97 @@ class ResumeScoringService:
             {candidates}
             """
 
-            resume_comparison = await self.gpt_service.extract_with_prompts(
+            return await self.gpt_service.extract_with_prompts(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
                 response_schema=ResumeScoringSchema
             )
 
-            return resume_comparison
-
         except Exception as e:
-            logger.error(f"Error comparing resume: {str(e)}", exc_info=True)
+            logger.error(f"Error in GPT-based scoring: {str(e)}", exc_info=True)
             raise
 
+    async def compute_similarity(self, text1: str, text2: str) -> float:
+        """
+        Uses TensorFlow's cosine similarity to compute the similarity between two pieces of text.
+
+        Args:
+            text1 (str): First text (Job Description).
+            text2 (str): Second text (Resume).
+
+        Returns:
+            float: Cosine similarity score (0-2.0).
+        """
+        try:
+            text1_embedding = await self.gpt_service.get_text_embedding(text1)
+            text2_embedding = await self.gpt_service.get_text_embedding(text2)
+
+            if not text1_embedding or not text2_embedding:
+                return 0.0  # Fallback in case of embedding failure
+
+            # Compute cosine similarity
+            similarity = tf.keras.losses.cosine_similarity(
+                tf.convert_to_tensor([text1_embedding], dtype=tf.float32),
+                tf.convert_to_tensor([text2_embedding], dtype=tf.float32)
+            ).numpy()[0]
+
+            return float(1 - similarity)  # ✅ Convert to standard Python float (ensures compatibility)
+
+        except Exception as e:
+            logger.error(f"Error computing similarity: {str(e)}", exc_info=True)
+            return 0.0
+
     def calculate_total_work_experience(self, experiences: List[Dict[str, str]]) -> Dict[str, int]:
+        """
+        Calculate the total work experience by handling overlapping periods and calculating the duration in years and months.
+
+        Args:
+        - experiences: A list of dictionaries, each containing 'date_start' and 'date_end'.
+        
+        Returns:
+        - A dictionary with the total years and months of work experience.
+        """
         if not experiences:
+            print("No experiences provided")
             return {'years': 0, 'months': 0}
-        total_months = sum((self.parse_date(exp['date_end']).year - self.parse_date(exp['date_start']).year) * 12 + (self.parse_date(exp['date_end']).month - self.parse_date(exp['date_start']).month) for exp in experiences)
-        return {'years': total_months // 12, 'months': total_months % 12}
+
+        total_months = 0
+        parsed_experiences = [
+            {'start': self.parse_date(exp['date_start']), 'end': self.parse_date(exp['date_end'])} for exp in experiences
+        ]
+        parsed_experiences.sort(key=lambda x: x['start'])
+
+        
+        current_start = parsed_experiences[0]['start']
+        current_end = parsed_experiences[0]['end']
+
+        for i in range(1, len(parsed_experiences)):
+            start = parsed_experiences[i]['start']
+            end = parsed_experiences[i]['end']
+            
+            if start <= current_end:
+                
+                current_end = max(current_end, end)
+            else:
+                
+                total_months += (current_end.year - current_start.year) * 12 + current_end.month - current_start.month
+                current_start = start
+                current_end = end
+        
+        
+        total_months += (current_end.year - current_start.year) * 12 + current_end.month - current_start.month
+        
+        
+        years = total_months // 12
+        months = total_months % 12
+
+        return {'years': years, 'months': months}
 
     def parse_date(self, date_string: str) -> datetime:
+        """
+        Parses a date string in the format 'YYYY-MM-DD' and returns a datetime object.
+        If the date string is empty or invalid, the current date is returned.
+        """
         try:
             return datetime.strptime(date_string, '%Y-%m-%d')
         except ValueError:

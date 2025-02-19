@@ -4,13 +4,12 @@ from app.models.schemas import (
     ResumeSchema, 
     JobDescriptionSchema, 
     EnhancedJobDescriptionSchema, 
-    CandidateProfileSchema, 
-    JobDescriptionEnhancementResponse,
+    CandidateProfileSchema,
     ResumeScoringSchema,
     CandidateProfileSchemaList
 )
 from app.services.config_service import ConfigService
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Initialize Logger
 logger = Logger(__name__).get_logger()
@@ -69,3 +68,28 @@ class GPTService:
         except Exception as e:
             logger.error(f"GPT extraction failed: {str(e)}", exc_info=True)
             raise Exception(f"GPT extraction failed: {str(e)}")
+
+    async def get_text_embedding(self, text: str) -> List[float]:
+        """
+        Generates a vectorized numerical representation of the given text using OpenAI embeddings.
+        
+        Args:
+            text (str): The text to convert into an embedding.
+
+        Returns:
+            List[float]: A vector representation of the text.
+        """
+        try:
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-ada-002",
+                input=text
+            )
+
+            # ✅ FIX: Access response as an object, not a dictionary
+            embedding_vector = response.data[0].embedding  # 🔥 Correct way to extract embeddings
+
+            return embedding_vector
+
+        except Exception as e:
+            logger.error(f"Failed to generate text embedding: {str(e)}", exc_info=True)
+            return []

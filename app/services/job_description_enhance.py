@@ -16,23 +16,23 @@ class JobDescriptionEnhancer:
 
     def __init__(self):
         """
-        Initializes the Job Description Enhancer with GPT integration.
+        Initializes the Job Description Enhancer with GPT and OpenAI embeddings for vectorization.
         """
         logger.info("JobDescriptionEnhancer initialized successfully.")
         config = ConfigService()
         self.gpt_service = GPTService()
-        self.temp_storage = {}  # Temporary storage for enhanced JD and generated candidates
+        self.temp_storage = {}  # Temporary storage for enhanced JD, generated candidates, and vectorized JD
 
     async def enhance_job_description(self, file_buffer: BytesIO, filename: str):
         """
-        Extracts, enhances a job description, and generates sample candidate profiles.
+        Extracts, enhances a job description, generates sample candidate profiles, and vectorizes the JD.
 
         Args:
             file_buffer (BytesIO): The job description file buffer.
             filename (str): Name of the uploaded job description file.
 
         Returns:
-            Dict containing the enhanced job description and generated candidates.
+            Dict containing the enhanced job description, generated candidates, and vectorized JD.
         """
         try:
             # Extract the job description
@@ -41,18 +41,21 @@ class JobDescriptionEnhancer:
             # Enhance the job description
             enhanced_jd = await self.generate_enhanced_jd(extracted_jd)
 
-            # Store Enhanced JD
-            self.temp_storage["enhanced_job_description"] = enhanced_jd
-
             # Generate 6 Sample Candidates based on enhanced JD
             candidates = await self.generate_candidate_profiles(enhanced_jd)
 
-            # Store Generated Candidates
+            # Vectorize the Enhanced JD for similarity comparisons
+            vectorized_jd = await self.vectorize_job_description(enhanced_jd)
+
+            # Store results in temp storage
+            self.temp_storage["enhanced_job_description"] = enhanced_jd
             self.temp_storage["candidates"] = candidates
+            self.temp_storage["vectorized_jd"] = vectorized_jd
 
             return {
                 "enhanced_job_description": enhanced_jd,
-                "generated_candidates": candidates
+                "generated_candidates": candidates,
+                "vectorized_jd": vectorized_jd
             }
 
         except Exception as e:
@@ -61,40 +64,52 @@ class JobDescriptionEnhancer:
 
     async def extract_job_description(self, file_buffer: BytesIO, filename: str) -> Dict[str, Any]:
         """
-        Extracts raw text from a job description file.
+        Extracts structured job description data.
 
         Args:
-            file_buffer (BytesIO): The job description file buffer.
-            filename (str): Name of the uploaded job description file.
+            file_buffer (BytesIO): Job description file buffer.
+            filename (str): Uploaded job description file name.
 
         Returns:
             Dict containing extracted job description details.
         """
         try:
-            # Extract text from the file
+            # Extract text from file
             text = parse_pdf_or_docx(file_buffer, filename)
+            today_date = datetime.now().strftime("%Y-%m-%d")
 
             system_prompt = f"""
-            You are an AI model specializing in extracting structured job descriptions.
-            Extract relevant details from the provided job description text and return them in the following JSON format:
+            You are an AI model specialized in extracting structured job descriptions. 
+            Ensure accurate data extraction and return structured JSON output. 
+            Today's date is {today_date}. Follow these rules:
 
-            {{
-                "job_title": "string",
-                "role_summary": "string",
-                "responsibilities": ["string", "string"],
-                "required_skills": ["string", "string"],
-                "experience_level": "string",
-                "key_metrics": ["string", "string"]
-            }}
+            1. **Extract Fields**:
+               - job_title: Extract the most relevant job title.
+               - job_description: Provide the full job description text.
+               - required_skills:
+                 a. Identify explicitly mentioned skills.
+                 b. Infer essential skills based on job context.
+               - min_work_experience:
+                 a. If a minimum experience requirement is stated, extract it.
+                 b. If experience is not explicitly mentioned, infer based on seniority level.
+
+            2. **Skill Extraction**:
+               - Extract both technical and soft skills.
+               - Include tools, technologies, and methodologies mentioned.
+
+            3. **Ensure Accuracy**:
+               - Do not leave fields blank. Provide estimates or mark as 'Not mentioned' where needed.
+               - Use contextual inference for missing values.
             """
 
             user_prompt = f"""
-            Extract key details from this job description:
+            Extract structured job description details from the following text:
 
             {text}
+
+            Ensure structured formatting, extract all key details, and infer missing information where applicable.
             """
 
-            # Extract structured data from GPT
             extracted_jd = await self.gpt_service.extract_with_prompts(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
@@ -109,43 +124,34 @@ class JobDescriptionEnhancer:
 
     async def generate_enhanced_jd(self, extracted_jd: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Enhances the extracted job description.
+        Enhances extracted job descriptions.
 
         Args:
             extracted_jd (Dict[str, Any]): Extracted job description details.
 
         Returns:
-            Dict containing the enhanced job description.
+            Dict containing enhanced job description.
         """
         try:
             system_prompt = f"""
-            You are an AI expert at refining and enhancing job descriptions. Your task is to take the extracted job description provided and enhance it by improving its clarity, structure, and detail. The goal is to produce a well-structured and highly detailed job description that can be easily understood by job seekers and is aligned with industry standards.
+            You are an AI expert at refining and enhancing job descriptions.
+            Enhance clarity, structure, and detail of job descriptions.
 
-            The enhanced job description should follow this JSON format:
+            **Enhancement Guidelines**:
+            - Responsibilities: Expand to **at least 10** clear, specific duties.
+            - Required Skills: Identify **at least 15** relevant skills (technical & non-technical).
+            - Key Metrics: Define **at least 10** measurable KPIs.
+            - Ensure industry standards and structured formatting.
 
-            {{
-                "job_title": "string",
-                "role_summary": "string",
-                "responsibilities": ["string", "string", ...],
-                "required_skills": ["string", "string", ...],
-                "experience_level": "string",
-                "key_metrics": ["string", "string", ...],
-                "working_conditions": "string",
-                "growth_opportunities": "string",
-                "company_culture": "string"
-            }}
+            Format the output in structured JSON format.
             """
 
             user_prompt = f"""
-            Improve the following job description to be more structured and detailed:
-            - responsibilities to have minimum 10 generated
-            - required_skills to have minimum 15 generated
-            - key_metrics to be minimum 10 generated
+            Enhance this job description to be more structured and complete:
 
             {extracted_jd}
             """
 
-            # Generate the enhanced job description
             enhanced_jd = await self.gpt_service.extract_with_prompts(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
@@ -160,78 +166,35 @@ class JobDescriptionEnhancer:
 
     async def generate_candidate_profiles(self, enhanced_jd: Dict[str, Any]) -> CandidateProfileSchemaList:
         """
-        Generates six candidate profiles based on the enhanced job description.
+        Generates sample candidate profiles based on the enhanced job description.
 
         Args:
             enhanced_jd (Dict[str, Any]): The enhanced job description.
 
         Returns:
-            CandidateProfileSchemaList: List of six sample candidate profiles.
+            CandidateProfileSchemaList: List of sample candidate profiles.
         """
         try:
             system_prompt = f"""
-            You are an AI that creates sample candidate profiles for job matching.
-            Based on the given job description, generate six sample candidates, each with varying levels of qualification:
+            Generate six candidate profiles with varying qualification levels for the given job description.
 
-            - 10/10: Ideal candidate (perfect fit)
-            - 8/10: Strong candidate (minor gaps)
-            - 6/10: Good but not the best fit
+            **Candidate Fit Levels**:
+            - 10/10: Perfect match
+            - 8/10: Strong match
+            - 6/10: Moderate match
             - 4/10: Below average
-            - 2/10: Weak fit
+            - 2/10: Weak match
             - 0/10: Not a fit
 
-            Each candidate profile should follow this JSON format:
-
-            {{
-            1) candidate_name (string) — Full name, ensure spaces between first and last names if applicable.
-            2) email_address (string) - The email should be a valid email address with a "@" symbol and a domain name (gmail, outlook, etc..).
-            3) phone_number (string) - should be a valid phone number with country codes (default is +91 if none given) first, followed by a space and then the number.
-            4) work_experience (object containing 'years' (number) and 'months' (number)) - Ensure that overlapping work periods are handled correctly.
-            5) educations_duration (object containing 'years' (number) and 'months' (number)) — Calculate the correct total duration for education.
-            6) experiences (array of objects):
-                Each experience must include:
-                - key (string),
-                - title (string),
-                - description (string),
-                - date_start (string),
-                - date_end (string),
-                - skills (array of strings),
-                - certifications (array of strings),
-                - courses (array of strings),
-                - tasks (array of strings),
-                - languages (array of strings),
-                - interests (array of strings),
-                - company (string)
-            7) educations (array of objects, similar to experiences):
-                - key (string),
-                - title (string),
-                - description (string),
-                - date_start (string),
-                - date_end (string),
-                - school (string)
-            8) social_urls (array of objects, each with:
-                - type (string),
-                - url (string)
-            9) languages (array of objects, each with:
-                - name (string)
-            10) skills (object containing 'primary_skills' (array of strings) and 'secondary_skills' (array of strings))
-            }}
+            Structure output as JSON.
             """
 
             user_prompt = f"""
-            Generate six sample candidates with varying levels of fit for this job description:
-            1. Parse the text and extract structured information according to the keys mentioned above.
-            2. Ensure that the total work experience is calculated accurately by accounting for overlaps and distinct periods.
-            3. Handle ongoing periods by comparing "present" with today's date and calculating the accurate duration.
-            4. For overlapping roles, calculate the total unique time worked without double-counting.
-            5. For education durations, calculate accurately.
-            6. Ensure no missing fields, and if any information is not provided, use null or empty arrays.
-            7. Return a valid JSON output with accurate dates and durations.
+            Generate sample candidates for this job description:
 
             {enhanced_jd}
             """
 
-            # Generate the list of candidates
             candidates = await self.gpt_service.extract_with_prompts(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
@@ -243,3 +206,28 @@ class JobDescriptionEnhancer:
         except Exception as e:
             logger.error(f"Error generating candidate profiles: {str(e)}", exc_info=True)
             raise
+
+    async def vectorize_job_description(self, enhanced_jd: Dict[str, Any]) -> List[float]:
+        """
+        Converts the enhanced job description into a vectorized representation using OpenAI embeddings.
+
+        Args:
+            enhanced_jd (Dict[str, Any]): The enhanced job description.
+
+        Returns:
+            List[float]: Vectorized representation of the job description.
+        """
+        try:
+            jd_text = f"""
+            Job Title: {enhanced_jd.get('job_title', '')}
+            Role Summary: {enhanced_jd.get('role_summary', '')}
+            Responsibilities: {', '.join(enhanced_jd.get('responsibilities', []))}
+            Required Skills: {', '.join(enhanced_jd.get('required_skills', []))}
+            """
+
+            vectorized_jd = await self.gpt_service.get_text_embedding(jd_text)
+            return vectorized_jd
+
+        except Exception as e:
+            logger.error(f"Error vectorizing job description: {str(e)}", exc_info=True)
+            return []

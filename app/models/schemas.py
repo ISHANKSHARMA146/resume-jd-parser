@@ -92,6 +92,7 @@ class EnhancedJobDescriptionSchema(BaseModel):
     working_conditions: str = Field(..., description="Description of work environment conditions, such as remote work or travel requirements")
     growth_opportunities: str = Field(..., description="Details about career progression and development opportunities")
     company_culture: str = Field(..., description="Overview of the company’s culture, values, and mission")
+    vectorized_jd: Optional[List[float]] = Field(None, description="Vectorized representation of the job description for similarity scoring")
 
 
 # 📌 **Candidate Profile Schema (for Sample Candidates)**
@@ -109,20 +110,15 @@ class CandidateProfileSchemaList(BaseModel):
     candidate_list: List[CandidateProfileSchema] = Field(..., description="List of candidates")
 
 
-# 📌 **Job Description & Candidate Response Schema**
-class JobDescriptionEnhancementResponse(BaseModel):
-    enhanced_job_description: EnhancedJobDescriptionSchema = Field(..., description="Enhanced job description data")
-    generated_candidates: CandidateProfileSchemaList = Field(..., description="List of generated candidate profiles")
-
-
 # 📌 **Resume Scoring Schema**
 class ResumeScoringSchema(BaseModel):
     candidate_name: str = Field(..., description="Name of the candidate extracted from resume")
     resume_score: int = Field(..., description="Score assigned to resume (0-10)")
-    gap_analysis: List[str]= Field(..., description="Details on missing skills, experience gaps")
+    gap_analysis: List[str] = Field(..., description="Details on missing skills, experience gaps")
     candidate_summary: str = Field(..., description="A detailed summary of what the candidate possess")
     closest_sample_candidate: str = Field(..., description="Closest matching sample candidate from the generated set")
     recommendations: str = Field(..., description="Improvement recommendations for the candidate")
+    vectorized_similarity: Optional[float] = Field(None, description="Cosine similarity score between resume and JD")
 
 
 # 📌 **Resume Scoring Response (for Bulk Processing)**
