@@ -119,17 +119,20 @@ class JobDescriptionEnhancer:
         """
         try:
             system_prompt = f"""
-            You are an AI expert at refining and enhancing job descriptions.
-            Given an extracted job description, improve clarity, structure, and details.
+            You are an AI expert at refining and enhancing job descriptions. Your task is to take the extracted job description provided and enhance it by improving its clarity, structure, and detail. The goal is to produce a well-structured and highly detailed job description that can be easily understood by job seekers and is aligned with industry standards.
+
             The enhanced job description should follow this JSON format:
 
             {{
                 "job_title": "string",
                 "role_summary": "string",
-                "responsibilities": ["string", "string"],
-                "required_skills": ["string", "string"],
+                "responsibilities": ["string", "string", ...],
+                "required_skills": ["string", "string", ...],
                 "experience_level": "string",
-                "key_metrics": ["string", "string"]
+                "key_metrics": ["string", "string", ...],
+                "working_conditions": "string",
+                "growth_opportunities": "string",
+                "company_culture": "string"
             }}
             """
 

@@ -84,11 +84,14 @@ class JobDescriptionSchema(BaseModel):
 # 📌 **Enhanced Job Description Schema (for Enhancing Job Descriptions)**
 class EnhancedJobDescriptionSchema(BaseModel):
     job_title: str = Field(..., description="Enhanced job title for better clarity")
-    role_summary: str = Field(..., description="Expanded overview of the role")
-    responsibilities: List[str] = Field(..., description="List of responsibilities for the job")
-    required_skills: List[str] = Field(..., description="Categorized required skills")
-    experience_level: str = Field(..., description="Required experience level for the role")
+    role_summary: str = Field(..., description="Expanded overview of the role, including its purpose and impact")
+    responsibilities: List[str] = Field(..., description="List of responsibilities for the job, clearly defined and specific")
+    required_skills: List[str] = Field(..., description="Categorized required skills, both technical and non-technical")
+    experience_level: str = Field(..., description="Required experience level for the role, including years of experience")
     key_metrics: List[str] = Field(..., description="Quantifiable indicators for performance measurement")
+    working_conditions: str = Field(..., description="Description of work environment conditions, such as remote work or travel requirements")
+    growth_opportunities: str = Field(..., description="Details about career progression and development opportunities")
+    company_culture: str = Field(..., description="Overview of the company’s culture, values, and mission")
 
 
 # 📌 **Candidate Profile Schema (for Sample Candidates)**
@@ -117,6 +120,7 @@ class ResumeScoringSchema(BaseModel):
     candidate_name: str = Field(..., description="Name of the candidate extracted from resume")
     resume_score: int = Field(..., description="Score assigned to resume (0-10)")
     gap_analysis: List[str]= Field(..., description="Details on missing skills, experience gaps")
+    candidate_summary: str = Field(..., description="A detailed summary of what the candidate possess")
     closest_sample_candidate: str = Field(..., description="Closest matching sample candidate from the generated set")
     recommendations: str = Field(..., description="Improvement recommendations for the candidate")
 

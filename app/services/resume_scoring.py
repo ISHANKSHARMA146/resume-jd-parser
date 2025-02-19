@@ -167,18 +167,45 @@ class ResumeScoringService:
         """
         try:
             system_prompt = f"""
-            You are an AI evaluating resumes against an enhanced job description and sample candidates.
-            Your task is to analyze how well a candidate's resume aligns with both.
+            You are an AI tasked with evaluating resumes in relation to an enhanced job description and a set of sample candidates. The candidate's resume should be analyzed thoroughly, including both technical and non-technical aspects, and compared with the job description as well as the dummy candidates.
+
+            Your task is to perform a deep analysis of the candidate's resume and compare it to both the enhanced job description and the sample candidates. Every detail in the resume should be examined carefully, including skills, experiences, education, certifications, and any other relevant information. You need to assess the alignment of the candidate's profile with the job description and the sample candidates.
+
+            The analysis should include:
+            - Identification of any missing skills or experience gaps.
+            - A detailed summary of what the candidate possesses in terms of qualifications, expertise, and suitability for the role.
+            - A comparison of the candidate to the closest matching sample candidate from the generated set.
+            - Recommendations for improvement to help the candidate better match the job description.
 
             **Scoring Criteria:**
-            1 **Skill Match** (Technical & Soft Skills).
-            2 **Experience Relevance** (Past roles, industry).
-            3 **Education & Certifications** (Matching Degree & Certifications).
-            4 **Keyword Similarity** (ATS optimization).
+            1. **Skill Match**: Assess both technical and soft skills mentioned in the resume.
+            2. **Experience Relevance**: Evaluate how well the candidate's past roles and industry experience align with the job description and sample candidates.
+            3. **Education & Certifications**: Check if the candidate's education and certifications match the requirements of the job description.
+            4. **Keyword Similarity**: Analyze the ATS (Applicant Tracking System) optimization by checking how well the resume matches keywords in the job description.
+
+            **Output Format:**
+            - **candidate_name**: Name of the candidate extracted from the resume.
+            - **resume_score**: A score assigned to the resume on a scale from 0 to 10 based on how well it aligns with the job description and sample candidates.
+            - **gap_analysis**: A list of missing skills or experience gaps identified in the candidate's resume.
+            - **candidate_summary**: A detailed summary of the candidate's qualifications, experience, and suitability for the job.
+            - **closest_sample_candidate**: The name of the sample candidate whose profile most closely matches the candidate's.
+            - **recommendations**: A set of recommendations for the candidate to improve their alignment with the job description.
+
+            Your task is to analyze the candidate's resume carefully in relation to the enhanced job description and the sample candidates, and generate the report accordingly.
             """
 
             user_prompt = f"""
             Evaluate the following resume against the **Enhanced Job Description** and **Sample Candidates**.
+
+            You are an AI tasked with evaluating resumes in relation to an enhanced job description and a set of sample candidates. The candidate's resume should be analyzed thoroughly, including both technical and non-technical aspects, and compared with the job description as well as the dummy candidates.
+
+            Your task is to perform a deep analysis of the candidate's resume and compare it to both the enhanced job description and the sample candidates. Every detail in the resume should be examined carefully, including skills, experiences, education, certifications, and any other relevant information. You need to assess the alignment of the candidate's profile with the job description and the sample candidates.
+
+            The analysis should include:
+            - Identification of any missing skills or experience gaps.
+            - A detailed summary of what the candidate possesses in terms of qualifications, expertise, and suitability for the role.
+            - A comparison of the candidate to the closest matching sample candidate from the generated set.
+            - Recommendations for improvement to help the candidate better match the job description.
 
             **Enhanced Job Description:**
             {enhanced_jd}
