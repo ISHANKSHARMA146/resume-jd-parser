@@ -1,165 +1,654 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume & JD Processing</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JD PARSER</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        label {
-            font-weight: bold;
-            margin-top: 15px;
-            display: block;
-        }
-        .file-input {
-            margin-bottom: 15px;
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        .btn:hover {
-            background: #218838;
-        }
-        .output-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
+      /* Combined CSS from App.css and index.css */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
+          sans-serif;
+        background-color: #f2f4f8;
+        color: #1f2937;
+      }
+      /* Container layout */
+      .container-fluid {
+        display: flex;
+        width: 100%;
+        height: 100%;
+      }
+      /* Sidebar styles */
+      .sidebar {
+        width: 260px;
+        background: #0f766e;
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        height: 100%;
+      }
+      .logo {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .nav-btn {
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        margin-bottom: 6px;
+        border-radius: 4px;
+        transition: background 0.2s, color 0.2s;
+      }
+      .nav-btn.active,
+      .nav-btn:hover {
+        background: #0d5e57;
+        color: #ffffff;
+      }
+      /* Center file uploader */
+      .main-center {
+        flex: 0 0 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f2f4f8;
+        padding: 1rem;
+      }
+      .placeholder-text {
+        color: #6b7280;
+        font-size: 1.05rem;
+        text-align: center;
+      }
+      .upload-section {
+        width: 500px;
+        max-width: 90%;
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        text-align: center;
+      }
+      .upload-section h3 {
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        color: #1f2937;
+        font-weight: 700;
+      }
+      .drop-zone {
+        border: 2px dashed #cbd5e1;
+        padding: 16px;
+        border-radius: 6px;
+        margin: 1rem 0;
+        cursor: pointer;
+        background-color: #f8fafc;
+        transition: background 0.2s;
+      }
+      .drop-zone:hover {
+        background-color: #e2e8f0;
+      }
+      .drop-zone p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #6b7280;
+      }
+      .submit-btn {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 20px;
+        background: #3b82f6;
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .submit-btn:hover {
+        background: #2563eb;
+      }
+      .error {
+        margin-top: 0.5rem;
+        color: #ef4444;
+        font-size: 0.9rem;
+      }
+      .input-box {
+        width: 100%;
+        padding: 8px 10px;
+        margin-top: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        background: #fff;
+        resize: vertical;
+      }
+      /* Results Panel */
+      .results {
+        flex: 1;
+        background: #ffffff;
+        border-left: 1px solid #e5e7eb;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+      }
+      .results h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+        font-weight: 700;
+      }
+      .scrollable-results {
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 12px;
+      }
+      .data-container {
+        background: #ffffff;
+        border-radius: 6px;
+        padding: 10px;
+      }
+      .auto-size-box {
+        background: #ffffff;
+        padding: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        margin-top: 6px;
+      }
+      .section {
+        margin-bottom: 8px;
+      }
+      .collapsible {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #3b82f6;
+        color: #ffffff;
+        border: none;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 4px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        margin-top: 4px;
+        transition: background 0.2s;
+      }
+      .collapsible:hover {
+        background: #2563eb;
+      }
+      .content {
+        margin-top: 4px;
+        border-left: 3px solid #3b82f6;
+        background: #fff;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .subsection {
+        margin-bottom: 6px;
+      }
+      .subsection h4 {
+        margin: 4px 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+      }
+      .nested-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        padding: 8px;
+        margin-top: 6px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      }
+      /* Additional global styles from index.css */
+      :root {
+        --background-color: #f4f7fc;
+        --text-color: #212529;
+        --heading-font-size: 1.25rem;
+        --code-bg: #f1f5f9;
+      }
+      a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #2563eb;
+        text-decoration: underline;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        color: var(--text-color);
+        margin: 0.5rem 0;
+      }
+      /* Styles for candidate dropdown list */
+      .candidate-list {
+        list-style: none;
+        padding: 0;
+      }
+      .candidate-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        background: #fff;
+      }
+      .candidate-header {
+        background: #3b82f6;
+        color: #ffffff;
+        padding: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        border: none;
+        width: 100%;
+        text-align: left;
+      }
+      .candidate-content {
+        display: none;
+        padding: 10px;
+      }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Resume & JD Processing</h1>
-        
-        <label for="resumeFile">Upload Resume:</label>
-        <input type="file" id="resumeFile" class="file-input">
-        <button class="btn" onclick="processFile('parse-resume', 'resumeFile', 'resumeOutput')">Parse Resume</button>
-        <div id="resumeOutput" class="output-box"></div>
-        
-        <label for="jdFile">Upload Job Description:</label>
-        <input type="file" id="jdFile" class="file-input">
-        <button class="btn" onclick="processFile('parse-job-description', 'jdFile', 'jdOutput')">Parse JD</button>
-        <div id="jdOutput" class="output-box"></div>
-        
-        <label for="jdEnhanceFile">Upload Job Description for Enhancement:</label>
-        <input type="file" id="jdEnhanceFile" class="file-input">
-        <button class="btn" onclick="processFile('job-description-enhance', 'jdEnhanceFile', 'jdEnhanceOutput')">Enhance JD</button>
-        <div id="jdEnhanceOutput" class="output-box"></div>
-        
-        <label for="resumeScoreFiles">Upload Resumes for Scoring:</label>
-        <input type="file" id="resumeScoreFiles" class="file-input" multiple>
-        <button class="btn" onclick="processMultipleFiles('score-resumes', 'resumeScoreFiles', 'resumeScoreOutput')">Score Resumes</button>
-        <div id="resumeScoreOutput" class="output-box"></div>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <!-- Left Sidebar -->
+      <nav class="sidebar" id="sidebar"></nav>
+      <!-- Center File Uploader / Placeholder -->
+      <div class="main-center" id="main-center"></div>
+      <!-- Right Results Panel -->
+      <div class="results">
+        <h3>Results</h3>
+        <div id="download-csv-container" style="margin-bottom:10px; display: none;">
+          <button class="submit-btn" id="download-csv-btn">Download CSV</button>
+        </div>
+        <div class="scrollable-results" id="results-container"></div>
+      </div>
     </div>
-
     <script>
-        function processFile(endpoint, fileInputId, outputId) {
-            const fileInput = document.getElementById(fileInputId);
-            const outputDiv = document.getElementById(outputId);
-            if (!fileInput.files.length) {
-                alert("Please select a file");
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-            
-            fetch(`http://localhost:8000/api/${endpoint}/`, {
-                method: "POST",
-                body: formData,
-                headers: { "Accept": "application/json" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                outputDiv.innerHTML = formatResponse(data);
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                outputDiv.innerText = "Error processing file.";
-            });
-        }
+      // Global state variables
+      let selectedApi = null;
+      let uploadedFiles = null;
+      let parsedData = null;
+      let loading = false;
+      let error = null;
+      let additionalInput = "";
+      const expandedSections = {};
 
-        function processMultipleFiles(endpoint, fileInputId, outputId) {
-            const fileInput = document.getElementById(fileInputId);
-            const outputDiv = document.getElementById(outputId);
-            if (!fileInput.files.length) {
-                alert("Please select at least one file");
-                return;
-            }
-            
-            const formData = new FormData();
-            for (let i = 0; i < fileInput.files.length; i++) {
-                formData.append("files", fileInput.files[i]);
-            }
-            
-            fetch(`http://localhost:8000/api/${endpoint}/`, {
-                method: "POST",
-                body: formData,
-                headers: { "Accept": "application/json" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                outputDiv.innerHTML = formatResponse(data);
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                outputDiv.innerText = "Error processing files.";
-            });
-        }
+      // Base URL for API calls
+      const baseURL = "http://localhost:8000";
 
-        function formatResponse(data) {
-            let html = '<div style="white-space: pre-wrap;">';
-            function parseObject(obj, indent = '') {
-                for (const [key, value] of Object.entries(obj)) {
-                    if (typeof value === 'object' && value !== null) {
-                        html += `<div>${indent}<strong>${key}:</strong></div>`;
-                        parseObject(value, indent + '&nbsp;&nbsp;&nbsp;');
-                    } else {
-                        html += `<div>${indent}<strong>${key}:</strong> ${value}</div>`;
-                    }
+      // API options (same as in your React app)
+      const apiOptions = [
+        { id: "parse-resume", label: "Parse Resume" },
+        { id: "parse-job-description", label: "Parse Job Description" },
+        { id: "job-description-enhance", label: "Enhance JD" },
+        { id: "score-resumes", label: "Score Resumes" },
+      ];
+
+      // Label mappings for JSON rendering
+      const labelMappings = {
+        candidate_name: "Name",
+        email_address: "Email",
+        phone_number: "Phone",
+        work_experience: "Work Experience",
+        educations_duration: "Education Duration",
+        experiences: "Experience",
+        educations: "Education",
+        social_urls: "Social Links",
+        skills: "Skills",
+        job_title: "Job Title",
+        job_description: "Job Description",
+        required_skills: "Required Skills",
+        min_work_experience: "Minimum Experience",
+        enhanced_job_description: "Enhanced Job Description",
+        generated_candidates: "Generated Candidates",
+        resume_score: "Resume Score",
+        gap_analysis: "Gap Analysis",
+        candidate_summary: "Candidate Summary",
+        closest_sample_candidate: "Closest Candidate",
+        recommendations: "Recommendations",
+      };
+
+      // Render the left sidebar
+      function renderSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.innerHTML = `<h2 class="logo">JD PARSER</h2>`;
+        apiOptions.forEach(option => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn" + (selectedApi === option.id ? " active" : "");
+          btn.textContent = option.label;
+          btn.addEventListener("click", () => handleApiSelection(option.id));
+          sidebar.appendChild(btn);
+        });
+      }
+
+      // Handle API selection from sidebar
+      function handleApiSelection(apiId) {
+        selectedApi = apiId;
+        uploadedFiles = null;
+        parsedData = null;
+        error = null;
+        additionalInput = "";
+        renderMainCenter();
+        renderResultsPanel();
+        renderSidebar();
+      }
+
+      // Render the center uploader area (or placeholder)
+      function renderMainCenter() {
+        const mainCenter = document.getElementById("main-center");
+        mainCenter.innerHTML = "";
+        if (!selectedApi) {
+          mainCenter.innerHTML = `<h2 class="placeholder-text">Select an API option from the left</h2>`;
+          return;
+        }
+        const container = document.createElement("div");
+        container.className = "upload-section";
+        let headerText = "";
+        switch (selectedApi) {
+          case "parse-resume":
+            headerText = "Parse Resume";
+            break;
+          case "parse-job-description":
+            headerText = "Parse Job Description";
+            break;
+          case "job-description-enhance":
+            headerText = "Enhance JD";
+            break;
+          case "score-resumes":
+            headerText = "Score Resumes";
+            break;
+          default:
+            headerText = "";
+        }
+        container.innerHTML = `<h3>${headerText}</h3>
+          <div class="drop-zone">
+            <input type="file" id="file-input" ${selectedApi === "score-resumes" ? "multiple" : ""} />
+            <p>Drag & drop files here or click to upload</p>
+          </div>
+          ${selectedApi === "score-resumes" ? `<textarea id="additional-input" placeholder="Additional requirements (e.g. 'DevOps experience')" rows="4" class="input-box"></textarea>` : ""}
+          <button class="submit-btn" id="submit-btn">${loading ? "Processing..." : "Submit"}</button>
+          <p class="error" id="error-message">${error ? error : ""}</p>`;
+        mainCenter.appendChild(container);
+        document.getElementById("file-input").addEventListener("change", (e) => {
+          uploadedFiles = e.target.files;
+        });
+        if (selectedApi === "score-resumes") {
+          document.getElementById("additional-input").addEventListener("input", (e) => {
+            additionalInput = e.target.value;
+          });
+        }
+        document.getElementById("submit-btn").addEventListener("click", handleSubmit);
+      }
+
+      // Submit handler: send file(s) via FormData
+      async function handleSubmit() {
+        if (!uploadedFiles || uploadedFiles.length === 0) {
+          error = "Please upload a file.";
+          renderMainCenter();
+          return;
+        }
+        loading = true;
+        error = null;
+        renderMainCenter();
+        const formData = new FormData();
+        if (selectedApi === "score-resumes") {
+          for (let file of uploadedFiles) {
+            formData.append("files", file);
+          }
+          formData.append("user_input", additionalInput);
+        } else {
+          formData.append("file", uploadedFiles[0]);
+        }
+        try {
+          const response = await fetch(`${baseURL}/api/${selectedApi}/`, {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok) {
+            throw new Error("Error processing file.");
+          }
+          parsedData = await response.json();
+          document.getElementById("download-csv-container").style.display = "block";
+        } catch (err) {
+          console.error(err);
+          error = "Error processing file.";
+        } finally {
+          loading = false;
+          renderMainCenter();
+          renderResultsPanel();
+        }
+      }
+
+      // Recursive function to render JSON with collapsible sections
+      function renderJson(data, parentKey = "") {
+        if (data === null || data === undefined) return document.createTextNode("");
+        const container = document.createElement("div");
+        if (typeof data === "object" && !Array.isArray(data)) {
+          Object.entries(data).forEach(([key, value]) => {
+            if (key === "vectorized_jd" || key === "logo") return;
+            const label = labelMappings[key] || key.replace(/_/g, " ").toUpperCase();
+            const sectionKey = parentKey + key;
+            const sectionDiv = document.createElement("div");
+            sectionDiv.className = "section";
+            if ((typeof value === "object" && value !== null) || Array.isArray(value)) {
+              const btn = document.createElement("button");
+              btn.className = "collapsible";
+              btn.textContent = label + " " + (expandedSections[sectionKey] ? "▲" : "▼");
+              btn.addEventListener("click", () => {
+                expandedSections[sectionKey] = !expandedSections[sectionKey];
+                renderResultsPanel();
+              });
+              sectionDiv.appendChild(btn);
+              if (expandedSections[sectionKey]) {
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "content";
+                if (Array.isArray(value)) {
+                  if (value.length > 0 && typeof value[0] === "object") {
+                    value.forEach((item, index) => {
+                      const nestedKey = sectionKey + "[" + index + "]";
+                      const nestedBox = document.createElement("div");
+                      nestedBox.className = "nested-box";
+                      const nestedBtn = document.createElement("button");
+                      nestedBtn.className = "collapsible";
+                      nestedBtn.textContent = label + " " + (expandedSections[nestedKey] ? "▲" : "▼");
+                      nestedBtn.addEventListener("click", () => {
+                        expandedSections[nestedKey] = !expandedSections[nestedKey];
+                        renderResultsPanel();
+                      });
+                      nestedBox.appendChild(nestedBtn);
+                      if (expandedSections[nestedKey]) {
+                        nestedBox.appendChild(renderJson(item, nestedKey + "."));
+                      }
+                      contentDiv.appendChild(nestedBox);
+                    });
+                  } else {
+                    const div = document.createElement("div");
+                    div.className = "subsection";
+                    const h4 = document.createElement("h4");
+                    h4.textContent = label;
+                    const valueDiv = document.createElement("div");
+                    valueDiv.className = "auto-size-box";
+                    valueDiv.textContent = value.join("; ");
+                    div.appendChild(h4);
+                    div.appendChild(valueDiv);
+                    contentDiv.appendChild(div);
+                  }
+                } else {
+                  contentDiv.appendChild(renderJson(value, sectionKey + "."));
                 }
+                sectionDiv.appendChild(contentDiv);
+              }
+            } else {
+              const subDiv = document.createElement("div");
+              subDiv.className = "subsection";
+              const h4 = document.createElement("h4");
+              h4.textContent = label;
+              const valueDiv = document.createElement("div");
+              valueDiv.className = "auto-size-box";
+              valueDiv.textContent = String(value);
+              subDiv.appendChild(h4);
+              subDiv.appendChild(valueDiv);
+              sectionDiv.appendChild(subDiv);
             }
-            parseObject(data);
-            html += '</div>';
-            return html;
+            container.appendChild(sectionDiv);
+          });
+        } else {
+          container.textContent = data;
         }
+        return container;
+      }
+
+      // Render the results panel (JSON view)
+      function renderResultsPanel() {
+        const resultsContainer = document.getElementById("results-container");
+        resultsContainer.innerHTML = "";
+        if (loading) {
+          resultsContainer.textContent = "Loading...";
+          return;
+        }
+        if (parsedData) {
+          const dataContainer = document.createElement("div");
+          dataContainer.className = "data-container";
+          
+          // If parsedData is an array, render as a list of candidate items
+          if (Array.isArray(parsedData)) {
+            const ul = document.createElement("ul");
+            ul.className = "candidate-list";
+            parsedData.forEach((item, index) => {
+              const li = document.createElement("li");
+              li.className = "candidate-item";
+              // Create a header button with candidate number and name
+              const headerBtn = document.createElement("button");
+              headerBtn.className = "candidate-header";
+              // Extract candidate name from item; if not available, use a default label
+              const candidateName = item.candidate_name ? item.candidate_name : "Candidate " + (index + 1);
+              headerBtn.textContent = (index + 1) + ") " + candidateName;
+              headerBtn.addEventListener("click", function() {
+                // Collapse any other open candidate details
+                const allCandidateContents = document.querySelectorAll(".candidate-content");
+                allCandidateContents.forEach(content => {
+                  if (content !== this.nextElementSibling) {
+                    content.style.display = "none";
+                  }
+                });
+                // Toggle current candidate content
+                const candidateContent = this.nextElementSibling;
+                candidateContent.style.display = candidateContent.style.display === "block" ? "none" : "block";
+              });
+              li.appendChild(headerBtn);
+              // Create candidate detail container
+              const detailsDiv = document.createElement("div");
+              detailsDiv.className = "candidate-content";
+              detailsDiv.style.display = "none";
+              detailsDiv.appendChild(renderJson(item, "candidate" + index + "."));
+              li.appendChild(detailsDiv);
+              ul.appendChild(li);
+            });
+            dataContainer.appendChild(ul);
+          } else {
+            dataContainer.appendChild(renderJson(parsedData));
+          }
+          resultsContainer.appendChild(dataContainer);
+        }
+      }
+
+      // Flatten JSON object for CSV conversion
+      function flattenObject(obj, parentKey = "", res = {}) {
+        for (let key in obj) {
+          if (!obj.hasOwnProperty(key)) continue;
+          if (key === "vectorized_jd") continue;
+          const newKey = parentKey ? parentKey + "." + key : key;
+          const value = obj[key];
+          if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+            flattenObject(value, newKey, res);
+          } else if (Array.isArray(value)) {
+            if (value.length > 0 && typeof value[0] === "object") {
+              const formatted = value
+                .map(item =>
+                  Object.entries(item)
+                    .map(([k, v]) => k + ": " + v)
+                    .join(", ")
+                )
+                .join("\n");
+              res[newKey] = formatted;
+            } else {
+              res[newKey] = value.join("; ");
+            }
+          } else {
+            res[newKey] = value;
+          }
+        }
+        return res;
+      }
+
+      // Convert JSON data to CSV
+      function jsonToCSV(data) {
+        let csv = "";
+        if (Array.isArray(data)) {
+          const flattenedData = data.map(item => flattenObject(item));
+          const headers = Array.from(flattenedData.reduce((acc, curr) => acc.concat(Object.keys(curr)), []));
+          csv += headers.join(",") + "\n";
+          flattenedData.forEach(row => {
+            const rowData = headers.map(header => {
+              const cell = row[header] !== undefined ? row[header] : "";
+              return `"${cell.toString().replace(/"/g, '""')}"`;
+            });
+            csv += rowData.join(",") + "\n";
+          });
+        } else {
+          const flattenedData = flattenObject(data);
+          const headers = Object.keys(flattenedData);
+          csv += headers.join(",") + "\n";
+          const rowData = headers.map(header =>
+            `"${flattenedData[header].toString().replace(/"/g, '""')}"`);
+          csv += rowData.join(",") + "\n";
+        }
+        return csv;
+      }
+
+      // Download CSV file
+      function downloadCSV() {
+        if (!parsedData) return;
+        const csvContent = jsonToCSV(parsedData);
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "output.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // Set up download CSV button listener
+      document.getElementById("download-csv-btn").addEventListener("click", downloadCSV);
+
+      // Initial render
+      renderSidebar();
+      renderMainCenter();
+      renderResultsPanel();
     </script>
-</body>
+  </body>
 </html>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from io import BytesIO
 from typing import List
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +19,11 @@ app = FastAPI(
     description="API for extracting, enhancing, and scoring resumes and job descriptions",
     version="1.0.0"
 )
+
+# CORS Configuration - Allow requests from React frontend running on localhost:3000
+origins = [
+    "http://localhost:8000"
+]
 
 # Serve static files (HTML UI)
 app.mount("/static", StaticFiles(directory="app"), name="static")
@@ -44,11 +49,8 @@ async def parse_resume(file: UploadFile = File(...)):
     Endpoint to parse a resume file (PDF, DOCX, DOC, image) and return structured JSON output.
     """
     try:
-        # Read the file into a BytesIO buffer
         file_buffer = BytesIO(await file.read())  
         filename = file.filename
-
-        # Call the resume parser service
         result = await resume_parser.parse_resume(file_buffer, filename)
         return result
     except Exception as e:
@@ -62,11 +64,8 @@ async def parse_job_description(file: UploadFile = File(...)):
     Endpoint to parse a job description file (PDF or DOCX) and return structured JSON output.
     """
     try:
-        # Read the file into a BytesIO buffer
         file_buffer = BytesIO(await file.read())
         filename = file.filename
-
-        # Call the job description parser service
         result = await jd_parser.parse_job_description(file_buffer, filename)
         return result
     except Exception as e:
@@ -81,11 +80,8 @@ async def job_description_enhance(file: UploadFile = File(...)):
     improving clarity, and generating sample candidate profiles.
     """
     try:
-        # Read the file into a BytesIO buffer
         file_buffer = BytesIO(await file.read())
         filename = file.filename
-
-        # Call the JD enhancement service
         result = await job_description_enhancer.enhance_job_description(file_buffer, filename)
         return result
     except Exception as e:
@@ -94,20 +90,21 @@ async def job_description_enhance(file: UploadFile = File(...)):
 
 ### **Resume Scoring Endpoint**
 @app.post("/api/score-resumes/")
-async def score_resumes(files: List[UploadFile] = File(...)):
+async def score_resumes(
+    files: List[UploadFile] = File(...),
+    user_input: str = Form("")  # Capture additional user input from frontend
+):
     """
-    Endpoint to score multiple resumes against an enhanced job description and sample candidate profiles.
+    Endpoint to score multiple resumes against an enhanced job description and sample candidate profiles,
+    while incorporating additional user preferences.
     """
     try:
         if not files:
             raise HTTPException(status_code=400, detail="No resume files provided.")
 
-        # Read the uploaded files into buffers
         resume_files = [BytesIO(await file.read()) for file in files]
         filenames = [file.filename for file in files]
-
-        # Call the resume scoring service
-        result = await resume_scoring_service.process_bulk_resumes(resume_files, filenames)
+        result = await resume_scoring_service.process_bulk_resumes(resume_files, filenames, user_input)
         return result
     except Exception as e:
         logger.error(f"Error scoring resumes: {str(e)}", exc_info=True)
