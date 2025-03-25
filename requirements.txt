@@ -10,7 +10,6 @@ pillow
 pydantic
 aiofiles
 requests
-logging
 datetime
 typing
 python-multipart

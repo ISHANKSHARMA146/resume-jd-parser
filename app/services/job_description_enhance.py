@@ -88,11 +88,7 @@ class JobDescriptionEnhancer:
         try:
             structured_data = await self.extract_job_description(file_buffer, filename)
             enhanced_jd = await self.generate_enhanced_jd(structured_data)
-            # Hardcode industry and job title for consistency.
-            enhanced_jd["industry_name"] = "Finances"
-            enhanced_jd["job_title"] = "Risk Advisory & Internal Auditor"
             candidates = await self.generate_candidate_profiles(enhanced_jd)
-            # Removed any Neo4j-related operations.
             vectorized_jd = await self.vectorize_job_description(enhanced_jd)
             self.temp_storage["enhanced_job_description"] = enhanced_jd
             self.temp_storage["candidates"] = candidates
