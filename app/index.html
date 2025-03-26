@@ -3,80 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>JD PARSER</title>
+    <title>JD & ATS Resume Generator</title>
+    <!-- Include jsPDF, html2canvas, and html-docx-js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.js"></script>
     <style>
-      /* Combined CSS from App.css and index.css */
-      html,
-      body {
-        height: 100%;
+      /* General Reset and Base Styles */
+      html, body {
         margin: 0;
         padding: 0;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
-          sans-serif;
+        height: 100%;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
         background-color: #f2f4f8;
         color: #1f2937;
       }
-      /* Container layout */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      
+      /* Layout: Sidebar, Main Area, Results */
       .container-fluid {
         display: flex;
         width: 100%;
         height: 100%;
       }
-      /* Sidebar styles */
       .sidebar {
         width: 260px;
         background: #0f766e;
         color: #ffffff;
+        padding: 24px;
         display: flex;
         flex-direction: column;
-        padding: 24px;
-        height: 100%;
+        justify-content: flex-start;
       }
       .logo {
         font-size: 1.3rem;
         font-weight: 700;
         margin-bottom: 1.5rem;
-        letter-spacing: 1px;
         text-transform: uppercase;
+        letter-spacing: 1px;
       }
       .nav-btn {
         width: 100%;
         background: transparent;
         border: none;
         padding: 12px 16px;
-        text-align: left;
+        margin-bottom: 6px;
         font-size: 0.95rem;
         font-weight: 600;
+        text-align: left;
         color: #ffffff;
-        cursor: pointer;
-        margin-bottom: 6px;
         border-radius: 4px;
-        transition: background 0.2s, color 0.2s;
+        cursor: pointer;
+        transition: background 0.2s;
       }
-      .nav-btn.active,
-      .nav-btn:hover {
+      .nav-btn:hover,
+      .nav-btn.active {
         background: #0d5e57;
-        color: #ffffff;
       }
-      /* Center file uploader */
+      
       .main-center {
         flex: 0 0 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f2f4f8;
         padding: 1rem;
-      }
-      .placeholder-text {
-        color: #6b7280;
-        font-size: 1.05rem;
-        text-align: center;
+        background: #f2f4f8;
       }
       .upload-section {
         width: 500px;
@@ -90,8 +83,8 @@
       .upload-section h3 {
         margin-bottom: 1rem;
         font-size: 1.2rem;
-        color: #1f2937;
         font-weight: 700;
+        color: #1f2937;
       }
       .drop-zone {
         border: 2px dashed #cbd5e1;
@@ -110,27 +103,6 @@
         font-size: 0.9rem;
         color: #6b7280;
       }
-      .submit-btn {
-        display: inline-block;
-        margin-top: 8px;
-        padding: 10px 20px;
-        background: #3b82f6;
-        color: #ffffff;
-        font-size: 0.9rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .submit-btn:hover {
-        background: #2563eb;
-      }
-      .error {
-        margin-top: 0.5rem;
-        color: #ef4444;
-        font-size: 0.9rem;
-      }
       .input-box {
         width: 100%;
         padding: 8px 10px;
@@ -138,10 +110,29 @@
         border: 1px solid #e5e7eb;
         border-radius: 4px;
         font-size: 0.9rem;
-        background: #fff;
-        resize: vertical;
       }
-      /* Results Panel */
+      .submit-btn {
+        margin-top: 12px;
+        padding: 10px 20px;
+        background: #3b82f6;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .submit-btn:hover {
+        background: #2563eb;
+      }
+      .error {
+        margin-top: 8px;
+        color: #ef4444;
+        font-size: 0.9rem;
+      }
+      
+      /* Results Panel and Resume Preview */
       .results {
         flex: 1;
         background: #ffffff;
@@ -153,97 +144,65 @@
       .results h3 {
         font-size: 1.15rem;
         margin-bottom: 0.5rem;
-        color: #1f2937;
         font-weight: 700;
+        color: #1f2937;
       }
       .scrollable-results {
         flex: 1;
         overflow-y: auto;
-        background-color: #f9fafb;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
         padding: 12px;
+        background: #f9fafb;
       }
-      .data-container {
+      
+      /* ATS Resume Preview Styles */
+      .ats-resume-preview {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
         background: #ffffff;
-        border-radius: 6px;
-        padding: 10px;
-      }
-      .auto-size-box {
-        background: #ffffff;
-        padding: 8px;
         border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        white-space: pre-wrap;
-        margin-top: 6px;
       }
-      .section {
-        margin-bottom: 8px;
+      .ats-resume-preview h1.candidate-name {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 10px;
       }
-      .collapsible {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #3b82f6;
-        color: #ffffff;
-        border: none;
-        padding: 8px 12px;
+      .ats-resume-preview .date {
+        text-align: right;
         font-size: 0.9rem;
-        font-weight: 600;
-        border-radius: 4px;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-        margin-top: 4px;
-        transition: background 0.2s;
+        color: #555;
       }
-      .collapsible:hover {
+      .ats-resume-preview h2,
+      .ats-resume-preview h3 {
+        text-align: left;
+        margin-top: 20px;
+      }
+      .ats-resume-preview p,
+      .ats-resume-preview li {
+        text-align: left;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .download-buttons {
+        margin-top: 12px;
+        text-align: center;
+      }
+      .download-buttons button {
+        padding: 8px 16px;
+        margin: 0 4px;
+        background: #3b82f6;
+        border: none;
+        border-radius: 4px;
+        color: #fff;
+        cursor: pointer;
+      }
+      .download-buttons button:hover {
         background: #2563eb;
       }
-      .content {
-        margin-top: 4px;
-        border-left: 3px solid #3b82f6;
-        background: #fff;
-        padding: 10px;
-        border-radius: 4px;
-      }
-      .subsection {
-        margin-bottom: 6px;
-      }
-      .subsection h4 {
-        margin: 4px 0;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #374151;
-      }
-      .nested-box {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        padding: 8px;
-        margin-top: 6px;
-        border-radius: 4px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-      }
-      /* Additional global styles from index.css */
-      :root {
-        --background-color: #f4f7fc;
-        --text-color: #212529;
-        --heading-font-size: 1.25rem;
-        --code-bg: #f1f5f9;
-      }
-      a {
-        color: #3b82f6;
-        text-decoration: none;
-      }
-      a:hover {
-        color: #2563eb;
-        text-decoration: underline;
-      }
-      h1, h2, h3, h4, h5, h6 {
-        color: var(--text-color);
-        margin: 0.5rem 0;
-      }
-      /* Styles for candidate dropdown list */
+      
+      /* Candidate List for Other API Responses */
       .candidate-list {
         list-style: none;
         padding: 0;
@@ -256,7 +215,7 @@
       }
       .candidate-header {
         background: #3b82f6;
-        color: #ffffff;
+        color: #fff;
         padding: 10px;
         cursor: pointer;
         font-weight: 600;
@@ -272,16 +231,17 @@
   </head>
   <body>
     <div class="container-fluid">
-      <!-- Left Sidebar -->
+      <!-- Sidebar -->
       <nav class="sidebar" id="sidebar"></nav>
-      <!-- Center File Uploader / Placeholder -->
+      <!-- Main Center: File Upload / Form Input -->
       <div class="main-center" id="main-center"></div>
-      <!-- Right Results Panel -->
+      <!-- Results & Resume Preview -->
       <div class="results">
         <h3>Results</h3>
         <div id="download-csv-container" style="margin-bottom:10px; display: none;">
           <button class="submit-btn" id="download-csv-btn">Download CSV</button>
         </div>
+        <div id="resume-preview" class="ats-resume-preview" style="display: none;"></div>
         <div class="scrollable-results" id="results-container"></div>
       </div>
     </div>
@@ -290,23 +250,26 @@
       let selectedApi = null;
       let uploadedFiles = null;
       let parsedData = null;
+      let resumeContent = "";
       let loading = false;
       let error = null;
       let additionalInput = "";
       const expandedSections = {};
-
+      
       // Base URL for API calls
       const baseURL = "http://localhost:8000";
-
-      // API options (same as in your React app)
+      
+      // API options (including resume generation endpoints)
       const apiOptions = [
         { id: "parse-resume", label: "Parse Resume" },
         { id: "parse-job-description", label: "Parse Job Description" },
         { id: "job-description-enhance", label: "Enhance JD" },
         { id: "score-resumes", label: "Score Resumes" },
+        { id: "generate-resume-from-upload", label: "Generate Resume from Upload" },
+        { id: "generate-resume-from-form", label: "Generate Resume from Form" }
       ];
-
-      // Label mappings for JSON rendering
+      
+      // Label mappings for rendering JSON data
       const labelMappings = {
         candidate_name: "Name",
         email_address: "Email",
@@ -327,13 +290,13 @@
         gap_analysis: "Gap Analysis",
         candidate_summary: "Candidate Summary",
         closest_sample_candidate: "Closest Candidate",
-        recommendations: "Recommendations",
+        recommendations: "Recommendations"
       };
-
-      // Render the left sidebar
+      
+      // Render Sidebar
       function renderSidebar() {
         const sidebar = document.getElementById("sidebar");
-        sidebar.innerHTML = `<h2 class="logo">JD PARSER</h2>`;
+        sidebar.innerHTML = `<h2 class="logo">JD & ATS Resume</h2>`;
         apiOptions.forEach(option => {
           const btn = document.createElement("button");
           btn.className = "nav-btn" + (selectedApi === option.id ? " active" : "");
@@ -342,20 +305,21 @@
           sidebar.appendChild(btn);
         });
       }
-
-      // Handle API selection from sidebar
+      
+      // Handle API Selection
       function handleApiSelection(apiId) {
         selectedApi = apiId;
         uploadedFiles = null;
         parsedData = null;
+        resumeContent = "";
         error = null;
         additionalInput = "";
         renderMainCenter();
         renderResultsPanel();
         renderSidebar();
       }
-
-      // Render the center uploader area (or placeholder)
+      
+      // Render Main Center based on selected API
       function renderMainCenter() {
         const mainCenter = document.getElementById("main-center");
         mainCenter.innerHTML = "";
@@ -366,48 +330,87 @@
         const container = document.createElement("div");
         container.className = "upload-section";
         let headerText = "";
+        let additionalFieldHTML = "";
+        let fileInputAttributes = "";
         switch (selectedApi) {
           case "parse-resume":
             headerText = "Parse Resume";
+            fileInputAttributes = "";
             break;
           case "parse-job-description":
             headerText = "Parse Job Description";
+            fileInputAttributes = "";
             break;
           case "job-description-enhance":
             headerText = "Enhance JD";
+            fileInputAttributes = "";
             break;
           case "score-resumes":
             headerText = "Score Resumes";
+            fileInputAttributes = "multiple";
+            additionalFieldHTML = `<textarea id="additional-input" placeholder="Additional requirements (e.g. 'DevOps experience')" rows="4" class="input-box"></textarea>`;
+            break;
+          case "generate-resume-from-upload":
+            headerText = "Generate Resume from Upload";
+            fileInputAttributes = "";
+            additionalFieldHTML = `<input type="text" id="output-format" placeholder="Output format (html, pdf, docx)" class="input-box" value="html" />`;
+            break;
+          case "generate-resume-from-form":
+            headerText = "Generate Resume from Form";
+            additionalFieldHTML = `<textarea id="candidate-data" placeholder='Enter candidate data in JSON format' rows="8" class="input-box"></textarea>
+                                    <input type="text" id="output-format" placeholder="Output format (html, pdf, docx)" class="input-box" value="html" />`;
             break;
           default:
             headerText = "";
         }
         container.innerHTML = `<h3>${headerText}</h3>
           <div class="drop-zone">
-            <input type="file" id="file-input" ${selectedApi === "score-resumes" ? "multiple" : ""} />
+            <input type="file" id="file-input" ${fileInputAttributes} />
             <p>Drag & drop files here or click to upload</p>
           </div>
-          ${selectedApi === "score-resumes" ? `<textarea id="additional-input" placeholder="Additional requirements (e.g. 'DevOps experience')" rows="4" class="input-box"></textarea>` : ""}
+          ${additionalFieldHTML}
           <button class="submit-btn" id="submit-btn">${loading ? "Processing..." : "Submit"}</button>
           <p class="error" id="error-message">${error ? error : ""}</p>`;
         mainCenter.appendChild(container);
-        document.getElementById("file-input").addEventListener("change", (e) => {
-          uploadedFiles = e.target.files;
-        });
+      
+        if (
+          selectedApi === "parse-resume" ||
+          selectedApi === "parse-job-description" ||
+          selectedApi === "job-description-enhance" ||
+          selectedApi === "score-resumes" ||
+          selectedApi === "generate-resume-from-upload"
+        ) {
+          document.getElementById("file-input").addEventListener("change", (e) => {
+            uploadedFiles = e.target.files;
+          });
+        }
         if (selectedApi === "score-resumes") {
           document.getElementById("additional-input").addEventListener("input", (e) => {
             additionalInput = e.target.value;
           });
         }
+        if (selectedApi === "generate-resume-from-form") {
+          document.getElementById("candidate-data").addEventListener("input", (e) => {
+            additionalInput = e.target.value;
+          });
+        }
         document.getElementById("submit-btn").addEventListener("click", handleSubmit);
       }
-
-      // Submit handler: send file(s) via FormData
+      
+      // Submit Handler: Sends FormData or JSON to API and displays the resume HTML
       async function handleSubmit() {
-        if (!uploadedFiles || uploadedFiles.length === 0) {
-          error = "Please upload a file.";
-          renderMainCenter();
-          return;
+        if (selectedApi === "generate-resume-from-form") {
+          if (!additionalInput) {
+            error = "Please enter candidate data in JSON format.";
+            renderMainCenter();
+            return;
+          }
+        } else {
+          if (!uploadedFiles || uploadedFiles.length === 0) {
+            error = "Please upload a file.";
+            renderMainCenter();
+            return;
+          }
         }
         loading = true;
         error = null;
@@ -418,30 +421,160 @@
             formData.append("files", file);
           }
           formData.append("user_input", additionalInput);
+        } else if (selectedApi === "generate-resume-from-upload") {
+          formData.append("file", uploadedFiles[0]);
+          const outputFormat = document.getElementById("output-format").value || "html";
+          formData.append("download_format", outputFormat);
+        } else if (selectedApi === "generate-resume-from-form") {
+          try {
+            const candidateData = JSON.parse(additionalInput);
+            formData.append("download_format", document.getElementById("output-format").value || "html");
+            const response = await fetch(`${baseURL}/api/${selectedApi}/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(candidateData)
+            });
+            if (!response.ok) throw new Error("Error processing candidate data.");
+            resumeContent = await response.text();
+            displayResumePreview(resumeContent);
+          } catch (e) {
+            console.error(e);
+            error = "Invalid JSON candidate data.";
+          } finally {
+            loading = false;
+            renderMainCenter();
+          }
+          return;
         } else {
           formData.append("file", uploadedFiles[0]);
         }
+      
         try {
           const response = await fetch(`${baseURL}/api/${selectedApi}/`, {
             method: "POST",
             body: formData,
           });
-          if (!response.ok) {
-            throw new Error("Error processing file.");
-          }
-          parsedData = await response.json();
-          document.getElementById("download-csv-container").style.display = "block";
+          if (!response.ok) throw new Error("Error processing file.");
+          resumeContent = await response.text();
+          displayResumePreview(resumeContent);
         } catch (err) {
           console.error(err);
           error = "Error processing file.";
         } finally {
           loading = false;
           renderMainCenter();
-          renderResultsPanel();
         }
       }
-
-      // Recursive function to render JSON with collapsible sections
+      
+      // Display the resume preview with download buttons
+      function displayResumePreview(htmlContent) {
+        const previewContainer = document.getElementById("resume-preview");
+        previewContainer.style.display = "block";
+        previewContainer.innerHTML = htmlContent;
+        const downloadDiv = document.createElement("div");
+        downloadDiv.className = "download-buttons";
+        downloadDiv.innerHTML = `
+          <button onclick="downloadFile('html')">Download HTML</button>
+          <button onclick="downloadFile('pdf')">Download PDF</button>
+          <button onclick="downloadFile('docx')">Download DOCX</button>
+        `;
+        previewContainer.appendChild(downloadDiv);
+      }
+      
+      // Download file function using the current resumeContent and format request
+      async function downloadFile(format) {
+        let endpoint = "";
+        if (selectedApi === "generate-resume-from-upload") {
+          endpoint = `${baseURL}/api/generate-resume-from-upload/`;
+        } else if (selectedApi === "generate-resume-from-form") {
+          endpoint = `${baseURL}/api/generate-resume-from-form/`;
+        }
+        const formData = new FormData();
+        formData.append("download_format", format);
+      
+        // For upload, include the file; for form, candidate data is already processed
+        if (selectedApi === "generate-resume-from-upload" && uploadedFiles && uploadedFiles.length > 0) {
+          formData.append("file", uploadedFiles[0]);
+        }
+      
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok) throw new Error("Error downloading file.");
+          const blob = await response.blob();
+          triggerDownload(blob, `generated_resume.${format}`);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      
+      // Client-side conversion for PDF and DOCX:
+      // If the resumeContent is already HTML (and previewed), we can trigger download using jsPDF/html2canvas and html-docx-js.
+      async function triggerDownload(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // Initial render
+      renderSidebar();
+      renderMainCenter();
+      renderResultsPanel();
+      
+      // Render results panel for non-resume responses (if needed)
+      function renderResultsPanel() {
+        const resultsContainer = document.getElementById("results-container");
+        resultsContainer.innerHTML = "";
+        if (loading) {
+          resultsContainer.textContent = "Loading...";
+          return;
+        }
+        if (parsedData) {
+          const dataContainer = document.createElement("div");
+          dataContainer.className = "data-container";
+          if (Array.isArray(parsedData)) {
+            const ul = document.createElement("ul");
+            ul.className = "candidate-list";
+            parsedData.forEach((item, index) => {
+              const li = document.createElement("li");
+              li.className = "candidate-item";
+              const headerBtn = document.createElement("button");
+              headerBtn.className = "candidate-header";
+              const candidateName = item.candidate_name ? item.candidate_name : "Candidate " + (index + 1);
+              headerBtn.textContent = (index + 1) + ") " + candidateName;
+              headerBtn.addEventListener("click", function() {
+                const allCandidateContents = document.querySelectorAll(".candidate-content");
+                allCandidateContents.forEach(content => {
+                  if (content !== this.nextElementSibling) {
+                    content.style.display = "none";
+                  }
+                });
+                const candidateContent = this.nextElementSibling;
+                candidateContent.style.display = candidateContent.style.display === "block" ? "none" : "block";
+              });
+              li.appendChild(headerBtn);
+              const detailsDiv = document.createElement("div");
+              detailsDiv.className = "candidate-content";
+              detailsDiv.style.display = "none";
+              detailsDiv.appendChild(renderJson(item, "candidate" + index + "."));
+              li.appendChild(detailsDiv);
+              ul.appendChild(li);
+            });
+            dataContainer.appendChild(ul);
+          } else {
+            dataContainer.appendChild(renderJson(parsedData));
+          }
+          resultsContainer.appendChild(dataContainer);
+        }
+      }
+      
+      // Recursive function to render JSON as collapsible sections
       function renderJson(data, parentKey = "") {
         if (data === null || data === undefined) return document.createTextNode("");
         const container = document.createElement("div");
@@ -519,62 +652,47 @@
         }
         return container;
       }
-
-      // Render the results panel (JSON view)
-      function renderResultsPanel() {
-        const resultsContainer = document.getElementById("results-container");
-        resultsContainer.innerHTML = "";
-        if (loading) {
-          resultsContainer.textContent = "Loading...";
-          return;
-        }
-        if (parsedData) {
-          const dataContainer = document.createElement("div");
-          dataContainer.className = "data-container";
-          
-          // If parsedData is an array, render as a list of candidate items
-          if (Array.isArray(parsedData)) {
-            const ul = document.createElement("ul");
-            ul.className = "candidate-list";
-            parsedData.forEach((item, index) => {
-              const li = document.createElement("li");
-              li.className = "candidate-item";
-              // Create a header button with candidate number and name
-              const headerBtn = document.createElement("button");
-              headerBtn.className = "candidate-header";
-              // Extract candidate name from item; if not available, use a default label
-              const candidateName = item.candidate_name ? item.candidate_name : "Candidate " + (index + 1);
-              headerBtn.textContent = (index + 1) + ") " + candidateName;
-              headerBtn.addEventListener("click", function() {
-                // Collapse any other open candidate details
-                const allCandidateContents = document.querySelectorAll(".candidate-content");
-                allCandidateContents.forEach(content => {
-                  if (content !== this.nextElementSibling) {
-                    content.style.display = "none";
-                  }
-                });
-                // Toggle current candidate content
-                const candidateContent = this.nextElementSibling;
-                candidateContent.style.display = candidateContent.style.display === "block" ? "none" : "block";
-              });
-              li.appendChild(headerBtn);
-              // Create candidate detail container
-              const detailsDiv = document.createElement("div");
-              detailsDiv.className = "candidate-content";
-              detailsDiv.style.display = "none";
-              detailsDiv.appendChild(renderJson(item, "candidate" + index + "."));
-              li.appendChild(detailsDiv);
-              ul.appendChild(li);
-            });
-            dataContainer.appendChild(ul);
-          } else {
-            dataContainer.appendChild(renderJson(parsedData));
-          }
-          resultsContainer.appendChild(dataContainer);
-        }
+      
+      // Download CSV function for non-resume responses
+      function downloadCSV() {
+        if (!parsedData) return;
+        const csvContent = jsonToCSV(parsedData);
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "output.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
-
-      // Flatten JSON object for CSV conversion
+      
+      // Convert JSON to CSV helper function
+      function jsonToCSV(data) {
+        let csv = "";
+        if (Array.isArray(data)) {
+          const flattenedData = data.map(item => flattenObject(item));
+          const headers = Array.from(flattenedData.reduce((acc, curr) => acc.concat(Object.keys(curr)), []));
+          csv += headers.join(",") + "\n";
+          flattenedData.forEach(row => {
+            const rowData = headers.map(header => {
+              const cell = row[header] !== undefined ? row[header] : "";
+              return `"${cell.toString().replace(/"/g, '""')}"`;
+            });
+            csv += rowData.join(",") + "\n";
+          });
+        } else {
+          const flattenedData = flattenObject(data);
+          const headers = Object.keys(flattenedData);
+          csv += headers.join(",") + "\n";
+          const rowData = headers.map(header =>
+            `"${flattenedData[header].toString().replace(/"/g, '""')}"`);
+          csv += rowData.join(",") + "\n";
+        }
+        return csv;
+      }
+      
+      // Flatten object helper function
       function flattenObject(obj, parentKey = "", res = {}) {
         for (let key in obj) {
           if (!obj.hasOwnProperty(key)) continue;
@@ -602,49 +720,47 @@
         }
         return res;
       }
-
-      // Convert JSON data to CSV
-      function jsonToCSV(data) {
-        let csv = "";
-        if (Array.isArray(data)) {
-          const flattenedData = data.map(item => flattenObject(item));
-          const headers = Array.from(flattenedData.reduce((acc, curr) => acc.concat(Object.keys(curr)), []));
-          csv += headers.join(",") + "\n";
-          flattenedData.forEach(row => {
-            const rowData = headers.map(header => {
-              const cell = row[header] !== undefined ? row[header] : "";
-              return `"${cell.toString().replace(/"/g, '""')}"`;
-            });
-            csv += rowData.join(",") + "\n";
-          });
-        } else {
-          const flattenedData = flattenObject(data);
-          const headers = Object.keys(flattenedData);
-          csv += headers.join(",") + "\n";
-          const rowData = headers.map(header =>
-            `"${flattenedData[header].toString().replace(/"/g, '""')}"`);
-          csv += rowData.join(",") + "\n";
+      
+      // Set up download CSV button listener
+      document.getElementById("download-csv-btn").addEventListener("click", downloadCSV);
+      
+      // Client-side conversion for PDF and DOCX
+      async function downloadFile(format) {
+        let endpoint = "";
+        if (selectedApi === "generate-resume-from-upload") {
+          endpoint = `${baseURL}/api/generate-resume-from-upload/`;
+        } else if (selectedApi === "generate-resume-from-form") {
+          endpoint = `${baseURL}/api/generate-resume-from-form/`;
         }
-        return csv;
+        const formData = new FormData();
+        formData.append("download_format", format);
+        if (selectedApi === "generate-resume-from-upload" && uploadedFiles && uploadedFiles.length > 0) {
+          formData.append("file", uploadedFiles[0]);
+        }
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok) throw new Error("Error downloading file.");
+          const blob = await response.blob();
+          triggerDownload(blob, `generated_resume.${format}`);
+        } catch (e) {
+          console.error(e);
+        }
       }
-
-      // Download CSV file
-      function downloadCSV() {
-        if (!parsedData) return;
-        const csvContent = jsonToCSV(parsedData);
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      
+      // Client-side conversion using jsPDF, html2canvas, and html-docx-js when needed
+      async function triggerDownload(blob, filename) {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", "output.csv");
+        link.href = url;
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
-
-      // Set up download CSV button listener
-      document.getElementById("download-csv-btn").addEventListener("click", downloadCSV);
-
+      
       // Initial render
       renderSidebar();
       renderMainCenter();

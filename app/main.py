@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Body
 from io import BytesIO
 from typing import List
 from fastapi.staticfiles import StaticFiles
@@ -8,6 +8,7 @@ from app.services.resume_extraction import ResumeParser
 from app.services.jd_extraction_helper import JobDescriptionParser
 from app.services.job_description_enhance import JobDescriptionEnhancer
 from app.services.resume_scoring import ResumeScoringService
+from app.services.resume_generation import ResumeGenerationService
 from app.utils.logger import Logger
 
 # Initialize Logger
@@ -37,6 +38,7 @@ resume_parser = ResumeParser()
 jd_parser = JobDescriptionParser()
 job_description_enhancer = JobDescriptionEnhancer()
 resume_scoring_service = ResumeScoringService(job_description_enhancer)
+resume_generation_service = ResumeGenerationService()
 
 @app.get("/")
 async def root():
@@ -109,6 +111,55 @@ async def score_resumes(
     except Exception as e:
         logger.error(f"Error scoring resumes: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error scoring resumes: {str(e)}")
+
+### **Resume Generation from Uploaded Resume Endpoint**
+@app.post("/api/generate-resume-from-upload/")
+async def generate_resume_from_upload(file: UploadFile = File(...), download_format: str = Form("html")):
+    """
+    Endpoint to generate an ATS optimized resume from an uploaded resume file.
+    It extracts resume details, enhances them for ATS optimization,
+    and returns a well-formatted resume in the requested format (html, pdf, or docx).
+    """
+    try:
+        file_buffer = BytesIO(await file.read())
+        filename = file.filename
+        generated_resume_content = await resume_generation_service.generate_resume_from_upload(file_buffer, filename, output_format=download_format)
+        output_filename = f"generated_resume.{download_format}"
+        with open(output_filename, "wb") as f:
+            f.write(generated_resume_content)
+        if download_format.lower() == "pdf":
+            media_type = "application/pdf"
+        elif download_format.lower() == "docx":
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        else:
+            media_type = "text/html"
+        return FileResponse(output_filename, media_type=media_type, filename=output_filename)
+    except Exception as e:
+        logger.error(f"Error generating resume from upload '{file.filename}': {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error generating resume: {str(e)}")
+
+### **Resume Generation from Manual Form Endpoint**
+@app.post("/api/generate-resume-from-form/")
+async def generate_resume_from_form(candidate_data: dict = Body(...), download_format: str = Form("html")):
+    """
+    Endpoint to generate an ATS optimized resume from manually provided candidate data.
+    Candidate data is provided as JSON.
+    """
+    try:
+        generated_resume_content = await resume_generation_service.generate_resume_from_form(candidate_data, output_format=download_format)
+        output_filename = f"generated_resume.{download_format}"
+        with open(output_filename, "wb") as f:
+            f.write(generated_resume_content)
+        if download_format.lower() == "pdf":
+            media_type = "application/pdf"
+        elif download_format.lower() == "docx":
+            media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        else:
+            media_type = "text/html"
+        return FileResponse(output_filename, media_type=media_type, filename=output_filename)
+    except Exception as e:
+        logger.error(f"Error generating resume from form data: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error generating resume: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
