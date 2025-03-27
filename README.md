@@ -241,3 +241,37 @@ Visit:
 http://localhost:8000/
 
 You can now use your application.
+
+resume gen by form
+
+{
+    "candidate_data": {
+        "candidate_name": "John Doe",
+        "email_address": "john.doe@example.com",
+        "phone_number": "+1 234 567 890",
+        "experiences": [
+            {
+                "title": "Software Engineer",
+                "company": "Tech Corp",
+                "date_start": "2018-01-01",
+                "date_end": "2020-12-31",
+                "description": "Developed scalable applications."
+            }
+        ],
+        "educations": [
+            {
+                "Insitution": "State University",
+                "title": "B.Sc. in Computer Science",
+                "date_start": "2014-09-01",
+                "date_end": "2018-06-01"
+            }
+        ],
+        "skills": {
+            "primary_skills": ["Python", "JavaScript"],
+            "secondary_skills": ["SQL", "Django"]
+        }
+    },
+    "download_format": "html",
+    "template_id": 3
+}
+
