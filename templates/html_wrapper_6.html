@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Template 6 - Dian Nugraha Style</title>
+  <style>
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+    /* Outer Container for the resume */
+    .resume-wrapper {
+      width: 900px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      display: flex;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      min-height: 1200px;
+    }
+    /* Left Column */
+    .left-column {
+      width: 30%;
+      background-color: #fafafa;
+      padding: 40px 30px;
+      position: relative;
+    }
+    /* Contact Info */
+    .contact-info {
+      margin-bottom: 30px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .contact-info p {
+      margin-bottom: 8px;
+    }
+    /* Objective Section */
+    .section-title-left {
+      font-size: 16px;
+      font-weight: bold;
+      color: #b56cd2; /* Purple heading color */
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .objective-text {
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    /* Right Column */
+    .right-column {
+      width: 70%;
+      padding: 40px 30px;
+      color: #333;
+    }
+    /* Candidate Name */
+    .candidate-name {
+      font-size: 28px;
+      font-weight: bold;
+      color: #000000; /* Purple color for name */
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    /* Section Titles on Right Column */
+    .section-title-right {
+      font-size: 18px;
+      color: #b56cd2;
+      margin-top: 30px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #b56cd2;
+      padding-bottom: 5px;
+    }
+    /* Paragraphs & Bullets on Right Column */
+    .right-column p,
+    .right-column ul {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="resume-wrapper">
+    {{resume_content}}
+  </div>
+</body>
+</html>

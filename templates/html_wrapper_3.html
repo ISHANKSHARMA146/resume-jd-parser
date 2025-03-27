@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Template 3 - Two-Column Resume (Ian Hansson Style)</title>
+  <style>
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
+
+    /* Outer container to center the resume on the page */
+    .resume-wrapper {
+      width: 900px;
+      margin: 40px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: flex; /* two columns side by side */
+      min-height: 1200px; /* ensure enough vertical space */
+    }
+
+    /* Left Column */
+    .left-column {
+      width: 60%;
+      background-color: #2b2b2b; /* Dark gray */
+      padding: 40px 30px;
+      color: #ffffff; /* White text */
+    }
+    .left-column h1 {
+      font-size: 32px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    .left-column .section-title {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 5px;
+    }
+    .left-column p,
+    .left-column ul,
+    .left-column li {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .left-column ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+
+    /* Right Column */
+    .right-column {
+      width: 40%;
+      background-color: #008080; /* Teal */
+      padding: 40px 30px;
+      color: #ffffff;
+    }
+    .right-column .roles {
+      font-size: 16px;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .right-column .section-title {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 5px;
+    }
+    .right-column p,
+    .right-column ul,
+    .right-column li {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .right-column ul {
+      list-style-type: disc;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="resume-wrapper">
+    {{resume_content}}
+  </div>
+</body>
+</html>

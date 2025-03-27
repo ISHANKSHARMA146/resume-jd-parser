@@ -1,13 +1,5 @@
 from openai import OpenAI
 from app.utils.logger import Logger
-from app.models.schemas import (
-    ResumeSchema, 
-    JobDescriptionSchema, 
-    EnhancedJobDescriptionSchema, 
-    CandidateProfileSchema,
-    ResumeScoringSchema,
-    CandidateProfileSchemaList
-)
 from app.services.config_service import ConfigService
 from typing import Dict, Any, List
 

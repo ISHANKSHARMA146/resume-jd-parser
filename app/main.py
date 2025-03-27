@@ -112,9 +112,12 @@ async def score_resumes(
         logger.error(f"Error scoring resumes: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error scoring resumes: {str(e)}")
 
-### **Resume Generation from Uploaded Resume Endpoint**
 @app.post("/api/generate-resume-from-upload/")
-async def generate_resume_from_upload(file: UploadFile = File(...), download_format: str = Form("html")):
+async def generate_resume_from_upload(
+    file: UploadFile = File(...),
+    download_format: str = Form("html"),
+    template_id: int = Form(1)
+):
     """
     Endpoint to generate an ATS optimized resume from an uploaded resume file.
     It extracts resume details, enhances them for ATS optimization,
@@ -123,16 +126,26 @@ async def generate_resume_from_upload(file: UploadFile = File(...), download_for
     try:
         file_buffer = BytesIO(await file.read())
         filename = file.filename
-        generated_resume_content = await resume_generation_service.generate_resume_from_upload(file_buffer, filename, output_format=download_format)
+
+        # Pass the template_id to the service
+        generated_resume_content = await resume_generation_service.generate_resume_from_upload(
+            file_buffer, 
+            filename, 
+            template_id=template_id, 
+            output_format=download_format
+        )
+
         output_filename = f"generated_resume.{download_format}"
         with open(output_filename, "wb") as f:
             f.write(generated_resume_content)
+
         if download_format.lower() == "pdf":
             media_type = "application/pdf"
         elif download_format.lower() == "docx":
             media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         else:
             media_type = "text/html"
+
         return FileResponse(output_filename, media_type=media_type, filename=output_filename)
     except Exception as e:
         logger.error(f"Error generating resume from upload '{file.filename}': {str(e)}", exc_info=True)

@@ -1,0 +1,19 @@
+UNIVERSAL TEXT ENHANCEMENT INSTRUCTIONS:
+
+Elevate the Language:
+Re-articulate and enrich the candidate's details using sophisticated, professional language. Transform simple statements into dynamic, action-driven sentences that exude confidence and expertise.
+
+Integrate Industry-Specific Keywords:
+Replace generic terms with targeted industry-specific keywords and strong action verbs (e.g., "orchestrated," "accelerated," "optimized"). Ensure these terms align with high ATS rankings.
+
+Embed Quantifiable Metrics:
+Enhance descriptions by incorporating measurable outcomes such as percentages, numerical achievements, and key performance indicators (e.g., "improved system efficiency by 20%," "increased revenue by 35%"). If project details are provided, contextualize impact with specific metrics.
+
+Optimize for Length and Impact:
+Expand the content so that it fills the resume page with well-articulated, detailed narratives. Ensure each section is sufficiently lengthy to demonstrate depth while remaining concise and focused. Aim for a high word count that still maintains clarity and relevance.
+
+Focus on ATS-Optimized Results:
+Transform the input text into a compelling, results-oriented narrative. The output should highlight achievements, strengths, and strategic outcomes, making it both human-readable and machine-optimized for ATS scans.
+
+Preserve Integrity of Data:
+Only enhance and rephrase the given data. Do not introduce new information; strictly improve the articulation of what is provided to better emphasize accomplishments and strengths.

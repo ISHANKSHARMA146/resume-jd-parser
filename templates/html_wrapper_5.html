@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Template 5 - Single-Column Resume (White Background)</title>
+  <style>
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    /* Outer container (centered, single column) */
+    .resume-container {
+      width: 210mm; /* approximate A4 width */
+      margin: 40px auto;
+      padding: 40px;
+      background-color: #ffffff; /* white background */
+      color: #000000; /* black text */
+      line-height: 1.6;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    /* Name / Heading at the top */
+    .name-heading {
+      font-size: 32px;
+      font-weight: bold;
+      color: #008080; /* teal color for name */
+      margin-bottom: 10px;
+    }
+    .contact-line {
+      font-size: 14px;
+      margin-bottom: 20px;
+      color: #000000; /* black text for contact info */
+    }
+    /* Section Title */
+    .section-title {
+      font-size: 20px;
+      color: #008080; /* teal headings */
+      margin-top: 30px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #008080;
+      padding-bottom: 5px;
+    }
+    /* Paragraph text */
+    p {
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: #000000;
+    }
+    /* Bulleted Lists */
+    ul {
+      list-style-type: disc;
+      margin-left: 20px;
+      margin-bottom: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+  <div class="resume-container">
+    {{resume_content}}
+  </div>
+</body>
+</html>

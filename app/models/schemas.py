@@ -121,6 +121,7 @@ class ResumeIndustrySchema(BaseModel):
 class JobDescriptionIndustrySchema(BaseModel):
     industry: str = Field(..., description="The classified industry of the job description")
 
+# 📌 **Resume Generation Input**
 class ResumeGenerationInput(BaseModel):
     candidate_name: Optional[str] = Field(None, description="Full name of the candidate")
     email_address: Optional[str] = Field(None, description="Email address")
@@ -131,41 +132,19 @@ class ResumeGenerationInput(BaseModel):
     certifications: Optional[Dict[str, Any]] = Field(None, description="Certifications or courses completed")
     additional_details: Optional[Dict[str, Any]] = Field(None, description="Any additional candidate details")
 
+# 📌 **Generated Resume Output**
 class GeneratedResumeOutput(BaseModel):
     html_resume: str = Field(..., description="Generated ATS optimized resume in HTML format")
 
 # 📌 **ATS Resume Schema**
 class ATSResumeSchema(BaseModel):
-    contact_information: Optional[str] = Field(
-        None, 
-        description="Formatted HTML snippet for contact info (name, email, phone, LinkedIn)."
-    )
-    professional_summary: Optional[str] = Field(
-        None, 
-        description="Powerful summary in HTML. Must only reflect actual data from the candidate."
-    )
-    work_experiences: Optional[List[Dict[str, Any]]] = Field(
-        None, 
-        description="List of experiences. Each item is {company, role, duration, achievements (HTML)}"
-    )
-    education: Optional[List[Dict[str, Any]]] = Field(
-        None, 
-        description="List of education items. Each item is {institution, degree, dates, description in HTML}."
-    )
-    skills: Optional[List[str]] = Field(
-        None, 
-        description="List of key skills. Must only reflect the extracted data."
-    )
-    certifications: Optional[List[str]] = Field(
-        None, 
-        description="List of certifications if provided in the extracted data."
-    )
-    additional_sections: Optional[Dict[str, str]] = Field(
-        None, 
-        description="Any additional relevant sections as {section_title: HTML_content}."
-    )
-    # This is the final compiled HTML. We'll rely on GPT to combine all sections here.
-    formatted_resume: str = Field(
-        ...,
-        description="The complete ATS-friendly HTML resume that integrates all the above sections."
-    )
+    contact_information: Optional[str] = Field(..., description="Formatted HTML snippet for contact info (name, email, phone, LinkedIn).")
+    professional_summary: Optional[str] = Field(..., description="Detailed professional summary in HTML.")
+    work_experiences: Optional[List[Dict[str, Any]]] = Field(..., description="List of work experiences with company, role, duration, and detailed achievements.")
+    education: Optional[List[Dict[str, Any]]] = Field(..., description="List of educational qualifications with institution, degree, duration, and key achievements.")
+    skills: Optional[List[str]] = Field(..., description="List of key skills, possibly categorized.")
+    certifications: Optional[List[str]] = Field(None, description="List of certifications.")
+    languages: Optional[List[str]] = Field(None, description="List of languages known.")
+    projects_awards: Optional[List[str]] = Field(None, description="List of notable projects and awards.")
+    additional_sections: Optional[Dict[str, str]] = Field(None, description="Any additional sections as {section_title: HTML_content}.")
+    formatted_resume: str = Field(..., description="The complete ATS-friendly HTML resume as a full HTML document.")

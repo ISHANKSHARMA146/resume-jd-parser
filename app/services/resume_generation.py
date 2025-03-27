@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 from app.services.gpt_service import GPTService
 from app.services.resume_extraction import ResumeParser
@@ -6,118 +7,116 @@ from app.models.schemas import ATSResumeSchema  # Refined ATS resume schema
 
 logger = Logger(__name__).get_logger()
 
+def load_universal_prompt() -> str:
+    """Load the universal enhancement prompt from 'templates/universal_prompt.txt'."""
+    path = os.path.join("templates", "universal_prompt.txt")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        logger.error(f"Error loading universal prompt: {str(e)}", exc_info=True)
+        raise
+
+def load_system_prompt(template_id: int) -> str:
+    """
+    Load the template-specific system prompt file for the given template_id.
+    Files should be stored as 'templates/system_prompt_{template_id}.txt'
+    """
+    path = os.path.join("templates", f"system_prompt_{template_id}.txt")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        return prompt
+    except Exception as e:
+        logger.error(f"Error loading system prompt for template {template_id}: {str(e)}", exc_info=True)
+        raise
+
+def load_html_wrapper(template_id: int) -> str:
+    """
+    Load the HTML wrapper file for the given template_id.
+    Files should be stored as 'templates/html_wrapper_{template_id}.html'
+    The file must include a placeholder {{resume_content}} where the generated resume will be inserted.
+    """
+    path = os.path.join("templates", f"html_wrapper_{template_id}.html")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            html_wrapper = f.read()
+        return html_wrapper
+    except Exception as e:
+        logger.error(f"Error loading HTML wrapper for template {template_id}: {str(e)}", exc_info=True)
+        raise
+
 class ResumeGenerationService:
     """
     Service for generating an ATS optimized resume.
     
     Provides two functions:
-      1. generate_resume_from_upload: Takes an uploaded resume, extracts details, 
-         enhances them, and generates a resume.
-      2. generate_resume_from_form: Takes manual candidate data, enhances it, 
-         and generates a resume.
+      1. generate_resume_from_upload: Takes an uploaded resume, extracts details, enhances them, and generates a resume.
+      2. generate_resume_from_form: Takes manual candidate data, enhances it, and generates a resume.
     
-    The output is returned as HTML. Client-side conversion to PDF or DOCX is handled on the frontend.
+    This backend service now supports multiple templates by accepting a template_id (1 to 5).
+    Based on the template_id, the corresponding system prompt and HTML wrapper are loaded from the "templates" folder.
     """
     def __init__(self):
         logger.info("ResumeGenerationService initialized successfully.")
         self.gpt_service = GPTService()
         self.resume_parser = ResumeParser()
 
-    async def generate_resume_from_upload(self, file_buffer: BytesIO, filename: str, output_format: str = "html") -> bytes:
-        """
-        1. Parse the resume to get extracted_data.
-        2. Call GPT with a detailed system prompt and the ATSResumeSchema.
-        3. Retrieve the final HTML from the 'formatted_resume' field.
-        4. Always return the HTML resume as bytes.
-        """
-        # Step 1: Extract candidate data from the uploaded resume.
+    async def generate_resume_from_upload(self, file_buffer: BytesIO, filename: str, template_id: int = 1, output_format: str = "html") -> bytes:
+        # Extract candidate data.
         extracted_data = await self.resume_parser.parse_resume(file_buffer, filename)
+        
+        # Load and combine universal and template-specific prompts.
+        universal_prompt = load_universal_prompt()
+        system_prompt = load_system_prompt(template_id)
+        full_system_prompt = universal_prompt + "\n" + system_prompt
 
-        # Step 2: Use a detailed, in-depth system prompt for ATS optimization.
-        system_prompt = """
-You are an expert resume writer with a deep understanding of Applicant Tracking Systems (ATS). Your task is to transform raw candidate details (extracted from an existing resume) into a perfect, high-scoring ATS-friendly resume.
-
-Follow these guidelines STRICTLY:
-1. USE ONLY THE PROVIDED DATA – do NOT invent or add any information beyond what is present.
-2. REPHRASE and reformat the existing information to improve clarity and ensure high ATS compatibility.
-3. Use strong action verbs, industry-specific keywords, and precise phrasing to target an ATS score of 90+ out of 100.
-4. FORMAT THE OUTPUT IN HTML using these rules:
-   - Candidate Name: Prominently displayed and center aligned.
-   - Dates (employment/education): Right aligned.
-   - Section Headings (e.g., "Professional Summary", "Work Experience", "Education"): Left aligned.
-   - Body Text: Left aligned.
-   - Lists: Use bullet points for achievements and skills.
-5. The final resume must include these sections:
-   - contact_information: An HTML snippet containing the candidate’s name (centered), email, phone, and links.
-   - professional_summary: A powerful, concise HTML summary.
-   - work_experiences: An array of objects (each with company, role, duration with dates right aligned, and achievements as bullet points in HTML).
-   - education: An array of objects (each with institution, degree, dates right aligned, and description in HTML).
-   - skills: An array of strings representing the candidate’s skills.
-   - certifications: An array of strings (if available).
-   - additional_sections: An object mapping section titles to HTML content (if provided).
-   - formatted_resume: The complete final HTML resume that integrates all the above sections following the specified alignment and formatting rules.
-6. The resume must only use the provided data without adding any extraneous or fictional details.
-Return strictly valid JSON matching the ATSResumeSchema.
-"""
-
-        # Step 3: Build the user prompt using the extracted candidate data.
+        # Build user prompt with candidate data.
         user_prompt = f"Candidate Data: {extracted_data}"
         ats_resume = await self.gpt_service.extract_with_prompts(
-            system_prompt=system_prompt,
+            system_prompt=full_system_prompt,
             user_prompt=user_prompt,
             response_schema=ATSResumeSchema
         )
 
-        # Step 4: Retrieve the final HTML from 'formatted_resume'
         if isinstance(ats_resume, dict) and "formatted_resume" in ats_resume:
-            final_html = ats_resume["formatted_resume"]
+            resume_content = ats_resume["formatted_resume"]
         else:
-            final_html = str(ats_resume)
+            resume_content = str(ats_resume)
 
-        # Step 5: Always return the HTML (client handles PDF/DOCX conversion)
-        return final_html.encode("utf-8")
+        html_wrapper = load_html_wrapper(template_id)
+        full_html = html_wrapper.replace("{{resume_content}}", resume_content)
+        return full_html.encode("utf-8")
 
-    async def generate_resume_from_form(self, candidate_data: dict, output_format: str = "html") -> bytes:
+    async def generate_resume_from_form(self, candidate_data: dict, template_id: int = 1, output_format: str = "html") -> bytes:
         """
-        1. Use the manually entered candidate data.
-        2. Call GPT with a detailed system prompt and the ATSResumeSchema.
-        3. Retrieve the final HTML from the 'formatted_resume' field.
-        4. Always return the HTML resume as bytes.
+        1. Use the manually provided candidate data.
+        2. Load the system prompt for the given template_id.
+        3. Call GPT with the loaded system prompt and candidate data using ATSResumeSchema.
+        4. Retrieve the resume body content from the 'formatted_resume' field.
+        5. Load the corresponding HTML wrapper and substitute the placeholder with the resume content.
+        6. Return the final HTML resume as bytes.
         """
-        system_prompt = """
-You are an expert resume writer with in-depth knowledge of ATS requirements.
-You will receive candidate data in JSON format provided by the candidate. Your task is to optimize this data into a professional, high-scoring ATS-friendly resume.
-
-Follow these detailed instructions:
-1. USE ONLY THE PROVIDED DATA – do NOT add any new information.
-2. REPHRASE and enhance the provided data to improve clarity and ATS compatibility, using strong action verbs and relevant keywords.
-3. FORMAT THE OUTPUT IN HTML with these rules:
-   - Candidate Name: Center aligned and prominently displayed.
-   - Dates: Right aligned.
-   - Section Headings and Body Text: Left aligned.
-   - Use bullet points for lists.
-4. Include the following sections:
-   - contact_information: HTML snippet with candidate’s name, email, phone, etc.
-   - professional_summary: A concise HTML summary.
-   - work_experiences: Array of objects with 'company', 'role', 'duration' (dates right aligned), and 'achievements' (bullet points in HTML).
-   - education: Array of objects with 'institution', 'degree', 'dates' (right aligned), and 'description' (HTML).
-   - skills: Array of strings.
-   - certifications: Array of strings (if available).
-   - additional_sections: Object mapping section titles to HTML content (if provided).
-   - formatted_resume: The complete final HTML resume that integrates all the sections with proper formatting.
-5. Do not add any information that is not provided.
-Return strictly valid JSON that conforms to the ATSResumeSchema.
-"""
+        # Step 1: Load system prompt.
+        system_prompt = load_system_prompt(template_id)
+        
+        # Step 2: Build user prompt.
         user_prompt = f"Candidate Data: {candidate_data}"
         ats_resume = await self.gpt_service.extract_with_prompts(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
             response_schema=ATSResumeSchema
         )
-
+        
+        # Step 3: Retrieve resume content.
         if isinstance(ats_resume, dict) and "formatted_resume" in ats_resume:
-            final_html = ats_resume["formatted_resume"]
+            resume_content = ats_resume["formatted_resume"]
         else:
-            final_html = str(ats_resume)
-
-        return final_html.encode("utf-8")
+            resume_content = str(ats_resume)
+        
+        # Step 4: Load HTML wrapper.
+        html_wrapper = load_html_wrapper(template_id)
+        full_html = html_wrapper.replace("{{resume_content}}", resume_content)
+        
+        # Step 5: Return final HTML as bytes.
+        return full_html.encode("utf-8")
