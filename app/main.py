@@ -151,15 +151,23 @@ async def generate_resume_from_upload(
         logger.error(f"Error generating resume from upload '{file.filename}': {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error generating resume: {str(e)}")
 
-### **Resume Generation from Manual Form Endpoint**
 @app.post("/api/generate-resume-from-form/")
-async def generate_resume_from_form(candidate_data: dict = Body(...), download_format: str = Form("html")):
+async def generate_resume_from_form(payload: dict = Body(...)):
     """
     Endpoint to generate an ATS optimized resume from manually provided candidate data.
-    Candidate data is provided as JSON.
+    Expects a JSON payload with the following keys:
+      - candidate_data: dict containing candidate details.
+      - download_format: string representing the desired output format (html, pdf, or docx).
+      - template_id: integer representing the desired template (default is 1 if not provided).
     """
     try:
-        generated_resume_content = await resume_generation_service.generate_resume_from_form(candidate_data, output_format=download_format)
+        candidate_data = payload.get("candidate_data")
+        download_format = payload.get("download_format", "html")
+        template_id = payload.get("template_id", 1)
+        
+        generated_resume_content = await resume_generation_service.generate_resume_from_form(
+            candidate_data, template_id=template_id, output_format=download_format
+        )
         output_filename = f"generated_resume.{download_format}"
         with open(output_filename, "wb") as f:
             f.write(generated_resume_content)

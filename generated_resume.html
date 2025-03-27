@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Template 6 - Dian Nugraha Style</title>
+  <title>Template 3 - Two-Column Resume (Ian Hansson Style)</title>
   <style>
     /* Reset & Base */
     * {
@@ -14,89 +14,113 @@
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
     }
-    /* Outer Container for the resume */
+
+    /* Outer container to center the resume on the page */
     .resume-wrapper {
       width: 900px;
       margin: 40px auto;
-      background-color: #ffffff;
-      display: flex;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      min-height: 1200px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: flex; /* two columns side by side */
+      min-height: 1200px; /* ensure enough vertical space */
     }
+
     /* Left Column */
     .left-column {
-      width: 30%;
-      background-color: #fafafa;
+      width: 60%;
+      background-color: #2b2b2b; /* Dark gray */
       padding: 40px 30px;
-      position: relative;
+      color: #ffffff; /* White text */
     }
-    /* Contact Info */
-    .contact-info {
-      margin-bottom: 30px;
-      font-size: 14px;
-      color: #333;
-      line-height: 1.6;
-    }
-    .contact-info p {
-      margin-bottom: 8px;
-    }
-    /* Objective Section */
-    .section-title-left {
-      font-size: 16px;
+    .left-column h1 {
+      font-size: 32px;
       font-weight: bold;
-      color: #b56cd2; /* Purple heading color */
-      margin-bottom: 10px;
       text-transform: uppercase;
-    }
-    .objective-text {
-      font-size: 14px;
-      color: #333;
-      line-height: 1.6;
       margin-bottom: 20px;
+      letter-spacing: 1px;
     }
-    /* Right Column */
-    .right-column {
-      width: 70%;
-      padding: 40px 30px;
-      color: #333;
-    }
-    /* Candidate Name */
-    .candidate-name {
-      font-size: 28px;
-      font-weight: bold;
-      color: #000000; /* Purple color for name */
-      margin-bottom: 20px;
-      text-transform: uppercase;
-    }
-    /* Section Titles on Right Column */
-    .section-title-right {
-      font-size: 18px;
-      color: #b56cd2;
+    .left-column .section-title {
       margin-top: 30px;
       margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
       text-transform: uppercase;
-      border-bottom: 1px solid #b56cd2;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
       padding-bottom: 5px;
     }
-    /* Paragraphs & Bullets on Right Column */
-    .right-column p,
-    .right-column ul {
+    .left-column p,
+    .left-column ul,
+    .left-column li {
       font-size: 14px;
       line-height: 1.6;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
     }
-    ul {
+    .left-column ul {
       list-style-type: disc;
       margin-left: 20px;
     }
-    li {
-      margin-bottom: 8px;
+
+    /* Right Column */
+    .right-column {
+      width: 40%;
+      background-color: #008080; /* Teal */
+      padding: 40px 30px;
+      color: #ffffff;
+    }
+    .right-column .roles {
+      font-size: 16px;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .right-column .section-title {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 5px;
+    }
+    .right-column p,
+    .right-column ul,
+    .right-column li {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .right-column ul {
+      list-style-type: disc;
+      margin-left: 20px;
     }
   </style>
 </head>
 <body>
   <div class="resume-wrapper">
-    <div style='display: flex;'><div style='width: 30%; background-color: #f8f8f8; padding: 20px;'><img src='https://via.placeholder.com/150' alt='Shivam Gupta' style='border-radius: 50%; display: block; margin: 0 auto;'><div style='margin-top: 20px;'><strong>Email:</strong> shivam1993g+1@gmail.com<br><strong>Phone:</strong> +91 98100-66809<br><strong>LinkedIn:</strong> <a href='https://linkedin.com/in/shivam-gupta'>linkedin.com/in/shivam-gupta</a></div><h3>Objective</h3><p>Dynamic and results-oriented leader with over 9 years of comprehensive experience in sales, business development, and strategic partnerships. Proven track record of significantly scaling organizations, establishing impactful client relationships, and driving revenue growth.</p></div><div style='width: 70%; padding: 20px;'><h1 style='font-size: 36px; font-weight: bold;'>SHIVAM GUPTA</h1><h2 style='color: #b56cd2;'>EXPERIENCE</h2><div><strong>CEO and Cofounder</strong><br><em>Volumetree Technology</em><br><strong>April 2017 - March 2025</strong><br><p>Instrumental in propelling company growth from a modest 2-member team to a robust 90-member workforce, achieving an annual recurring revenue (ARR) nearing $1 million. Cultivated long-term client relationships, with individual contract sizes compellingly reaching $150,000 annually. Formulated and executed transformational go-to-market strategies and successful product integrations.</p></div><div><strong>Heading Partnerships and Alliances</strong><br><em>Jugnoo (Merged with Click Labs)</em><br><strong>December 2016 - March 2017</strong><br><p>Helmed partnership initiatives for Tookan, a SaaS solution tailored for B2B entities, establishing critical relationships across South Africa, the Middle East, India, and Latin America. Developed impactful go-to-market strategies that fueled business growth.</p></div><div><strong>Business Development Manager</strong><br><em>ClickLabs</em><br><strong>January 2016 - December 2016</strong><br><p>Strengthened sales operations by enhancing month-on-month closure values and securing pivotal contracts, including significant deals with Reliance. Honored as 'Employee of the Quarter' in Q3 2016 for excellence in performance and leadership.</p></div><div><strong>Business Development Co-ordinator</strong><br><em>ClickLabs</em><br><strong>June 2015 - December 2015</strong><br><p>Assisted the Sales Director with key activities, conducting product demos that dramatically increased appointment numbers and streamlined pre-sales initiatives.</p></div><h2 style='color: #b56cd2;'>EDUCATION</h2><div><strong>BTech, Civil Engineering</strong><br><em>Jaypee University of Information & Technology, India</em><br><strong>July 2011 - May 2015</strong><br><p>Graduated with a degree in Civil Engineering.</p></div><h2 style='color: #b56cd2;'>COMMUNICATION</h2><div><p>Fluent in English, with strong verbal and written communication skills.</p></div><h2 style='color: #b56cd2;'>LEADERSHIP</h2><div><p>Demonstrated ability to lead diverse teams, cultivate relationships, and drive organizational objectives through strategic vision and direction.</p></div><h2 style='color: #b56cd2;'>REFERENCES</h2><div><p>Available upon request.</p></div></div></div>
+    <div class="left-column" style="width:60%; background-color:#2b2b2b; color:#ffffff; font-family: Arial, sans-serif; padding: 20px;">
+    <h1 style="font-size: 28px; font-weight: bold; text-transform: uppercase;">JOHN DOE</h1>
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">PROFILE</h2>
+    <p>A highly proficient Software Engineer with experience in developing scalable applications. Demonstrates exceptional skills in programming languages and frameworks aimed at enhancing user experience and performance.</p>
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">EXPERIENCE</h2>
+    <p><strong>Software Engineer</strong>, Tech Corp (January 2018 - December 2020)</p>
+    <ul>
+        <li>Developed scalable applications that enhanced productivity and reduced operational costs.</li>
+    </ul>
+</div>
+<div class="right-column" style="width:40%; background-color:#008080; color:#ffffff; font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">SPECIALTIES</h2>
+    <p>Software Developer / Application Architect</p>
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">CONTACT INFORMATION</h2>
+    <p>Email: john.doe@example.com</p>
+    <p>Phone: +1 234 567 890</p>
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">SKILLS</h2>
+    <ul>
+        <li>Python</li>
+        <li>JavaScript</li>
+        <li>SQL</li>
+        <li>Django</li>
+    </ul>
+    <h2 style="text-transform: uppercase; border-bottom: 2px solid white;">EDUCATION</h2>
+    <p><strong>State University</strong>, B.Sc. in Computer Science (September 2014 - June 2018)</p>
+</div>
   </div>
 </body>
 </html>
